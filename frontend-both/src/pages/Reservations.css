@@ -1,0 +1,76 @@
+.reservations-page {
+  padding: calc(80px + var(--space-lg)) 0 var(--space-lg);
+  min-height: 100vh;
+  background: var(--bg-900);
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: var(--space-xxl);
+}
+
+.page-title {
+  color: var(--fg);
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  margin-bottom: var(--space-md);
+}
+
+.page-subtitle {
+  color: var(--muted);
+  font-size: var(--text-lg);
+}
+
+.reservation-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all var(--transition-normal);
+}
+
+.reservation-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(173, 33, 255, 0.3);
+}
+
+.reservation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+}
+
+.station-name {
+  color: var(--fg);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  margin: 0;
+}
+
+.reservation-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--muted);
+}
+
+.detail-icon {
+  color: var(--accent);
+}
+
+.empty-state-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: var(--space-xxl);
+}
+
+.empty-icon {
+  color: var(--muted);
+  margin-bottom: var(--space-lg);
+}

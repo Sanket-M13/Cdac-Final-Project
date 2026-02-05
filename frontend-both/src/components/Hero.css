@@ -1,0 +1,101 @@
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  position: relative;
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+              url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+  overflow: hidden;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-title {
+  font-size: clamp(var(--text-4xl), 5vw, var(--text-5xl));
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: var(--space-lg);
+  letter-spacing: -0.02em;
+}
+
+.hero-accent {
+  color: var(--accent);
+  position: relative;
+}
+
+.hero-accent::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  border-radius: 2px;
+}
+
+.hero-subtitle {
+  font-size: var(--text-xl);
+  color: var(--muted);
+  margin-bottom: var(--space-xxl);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero-actions {
+  display: flex;
+  gap: var(--space-lg);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.hero-btn-primary {
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-xl);
+  font-size: var(--text-lg);
+  box-shadow: 0 0 20px rgba(173, 33, 255, 0.3);
+}
+
+.hero-btn-primary:hover {
+  box-shadow: 0 0 30px rgba(173, 33, 255, 0.5);
+}
+
+.hero-btn-secondary {
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-xl);
+  font-size: var(--text-lg);
+}
+
+.hero-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(173, 33, 255, 0.1) 0%, transparent 70%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .hero-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .hero-btn-primary,
+  .hero-btn-secondary {
+    width: 100%;
+    max-width: 280px;
+  }
+  
+  .hero-glow {
+    width: 600px;
+    height: 600px;
+  }
+}

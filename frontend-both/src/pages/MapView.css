@@ -1,0 +1,21 @@
+.map-view-page {
+  padding: calc(80px + var(--space-lg)) 0 var(--space-lg);
+  min-height: 100vh;
+  background: var(--bg-900);
+}
+
+.filter-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: var(--space-lg);
+}
+
+.filter-title {
+  color: var(--fg);
+  font-size: var(--text-lg);
+  margin: 0;
+}
+
+.map-container {
+  height: 600px;
+}

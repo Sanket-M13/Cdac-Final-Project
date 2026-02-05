@@ -1,0 +1,244 @@
+package com.evcharger.api.service;
+
+import com.evcharger.api.dto.*;
+import com.evcharger.api.entity.User;
+import com.evcharger.api.repository.UserRepository;
+import com.evcharger.api.security.JwtUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+@Service
+public class AuthService {
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+
+    @Autowired
+    AuthenticationManager authenticationManager;
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    PasswordEncoder encoder;
+
+    @Autowired
+    JwtUtils jwtUtils;
+
+    public Map<String, Object> authenticateUser(LoginDto loginRequest) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = jwtUtils.generateJwtToken(authentication);
+
+        Optional<User> userOpt = userRepository.findByEmail(loginRequest.getEmail());
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            
+            logger.info("User login - Email: {}, Role: {}", user.getEmail(), user.getRole());
+
+            UserDto userDto = convertToUserDto(user);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", jwt);
+            response.put("user", userDto);
+            return response;
+        }
+        
+        throw new RuntimeException("User not found");
+    }
+
+    public Map<String, Object> registerUser(RegisterDto signUpRequest) {
+        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+            throw new RuntimeException("Error: Email is already in use!");
+        }
+
+        User user = new User();
+        user.setEmail(signUpRequest.getEmail());
+        user.setName(signUpRequest.getName());
+        user.setPasswordHash(encoder.encode(signUpRequest.getPassword()));
+        user.setPhone(signUpRequest.getPhone());
+        user.setVehicleNumber(signUpRequest.getVehicleNumber());
+        user.setVehicleType(signUpRequest.getVehicleType());
+        user.setVehicleBrand(signUpRequest.getVehicleBrand());
+        user.setVehicleModel(signUpRequest.getVehicleModel());
+        user.setRole(signUpRequest.getRole() != null ? signUpRequest.getRole() : "User");
+        
+        logger.info("Registering user with email: {} and role: {}", signUpRequest.getEmail(), user.getRole());
+
+        userRepository.save(user);
+
+        // Generate JWT token without authentication for new users
+        String jwt = jwtUtils.generateTokenFromUsername(signUpRequest.getEmail());
+
+        UserDto userDto = convertToUserDto(user);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", jwt);
+        response.put("user", userDto);
+        return response;
+    }
+
+    public Map<String, Object> registerGoogleUser(RegisterDto signUpRequest) {
+        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+            // User exists, just authenticate
+            return authenticateUserByEmail(signUpRequest.getEmail());
+        }
+
+        // Create new user's account
+        User user = new User();
+        user.setEmail(signUpRequest.getEmail());
+        user.setName(signUpRequest.getName());
+        user.setPasswordHash(""); // No password for OAuth users
+        user.setPhone(signUpRequest.getPhone());
+        user.setVehicleNumber(signUpRequest.getVehicleNumber());
+        user.setVehicleType(signUpRequest.getVehicleType());
+        user.setVehicleBrand(signUpRequest.getVehicleBrand());
+        user.setVehicleModel(signUpRequest.getVehicleModel());
+        user.setRole("User");
+
+        userRepository.save(user);
+
+        // Generate JWT token without password authentication
+        String jwt = jwtUtils.generateTokenFromUsername(signUpRequest.getEmail());
+
+        UserDto userDto = convertToUserDto(user);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", jwt);
+        response.put("user", userDto);
+        return response;
+    }
+
+    public UserDto getCurrentUser(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return convertToUserDto(user);
+    }
+
+    public UserDto updateProfile(String email, UpdateProfileDto updateRequest) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (updateRequest.getName() != null) user.setName(updateRequest.getName());
+        if (updateRequest.getPhone() != null) user.setPhone(updateRequest.getPhone());
+        if (updateRequest.getVehicleNumber() != null) user.setVehicleNumber(updateRequest.getVehicleNumber());
+        if (updateRequest.getVehicleType() != null) user.setVehicleType(updateRequest.getVehicleType());
+        if (updateRequest.getVehicleBrand() != null) user.setVehicleBrand(updateRequest.getVehicleBrand());
+        if (updateRequest.getVehicleModel() != null) user.setVehicleModel(updateRequest.getVehicleModel());
+        
+        userRepository.save(user);
+        return convertToUserDto(user);
+    }
+
+    public Map<String, Object> authenticateUserByEmail(String email) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+        
+        User user = userOpt.get();
+        
+        // Create authentication token without password verification
+        String jwt = jwtUtils.generateTokenFromUsername(email);
+        UserDto userDto = convertToUserDto(user);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", jwt);
+        response.put("user", userDto);
+        return response;
+    }
+    
+    public Map<String, Object> authenticateOrCreateGoogleUser(String email, String name) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        User user;
+        
+        if (userOpt.isPresent()) {
+            user = userOpt.get();
+        } else {
+            // Create new user for Google OAuth
+            user = new User();
+            user.setEmail(email);
+            user.setName(name);
+            user.setRole("User");
+            user.setPasswordHash(""); // No password for OAuth users
+            userRepository.save(user);
+        }
+        
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                email, null, null);
+        
+        String jwt = jwtUtils.generateTokenFromUsername(email);
+        UserDto userDto = convertToUserDto(user);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", jwt);
+        response.put("user", userDto);
+        return response;
+    }
+    
+    public UserDto updateCarDetails(String email, Map<String, String> carDetails) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if (carDetails.get("carNumber") != null) {
+            user.setVehicleNumber(carDetails.get("carNumber"));
+        }
+        if (carDetails.get("carBrand") != null) {
+            user.setVehicleBrand(carDetails.get("carBrand"));
+        }
+        if (carDetails.get("vehicleType") != null) {
+            user.setVehicleType(carDetails.get("vehicleType"));
+        }
+        if (carDetails.get("vehicleModel") != null) {
+            user.setVehicleModel(carDetails.get("vehicleModel"));
+        }
+        if (carDetails.get("phone") != null) {
+            user.setPhone(carDetails.get("phone"));
+        }
+        
+        userRepository.save(user);
+        return convertToUserDto(user);
+    }
+    
+    public java.util.List<Map<String, Object>> getAllVehicleBrands() {
+        return java.util.List.of(
+            Map.of("id", 1, "name", "Tata"),
+            Map.of("id", 2, "name", "Mahindra"),
+            Map.of("id", 3, "name", "Tesla"),
+            Map.of("id", 4, "name", "BYD"),
+            Map.of("id", 5, "name", "MG"),
+            Map.of("id", 6, "name", "Hyundai"),
+            Map.of("id", 7, "name", "Kia"),
+            Map.of("id", 8, "name", "BMW"),
+            Map.of("id", 9, "name", "Mercedes"),
+            Map.of("id", 10, "name", "Audi")
+        );
+    }
+    
+    private UserDto convertToUserDto(User user) {
+        UserDto userDto = new UserDto();
+        userDto.setId(user.getId());
+        userDto.setEmail(user.getEmail());
+        userDto.setName(user.getName());
+        userDto.setRole(user.getRole());
+        userDto.setPhone(user.getPhone());
+        userDto.setVehicleNumber(user.getVehicleNumber());
+        userDto.setVehicleType(user.getVehicleType());
+        userDto.setVehicleBrand(user.getVehicleBrand());
+        userDto.setVehicleModel(user.getVehicleModel());
+        userDto.setCarNumber(user.getVehicleNumber());
+        userDto.setCarBrand(user.getVehicleBrand());
+        return userDto;
+    }
+}

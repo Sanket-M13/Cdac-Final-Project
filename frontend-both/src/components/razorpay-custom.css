@@ -1,0 +1,16 @@
+/* Hide Razorpay test label */
+.razorpay-container .razorpay-test-label,
+.razorpay-checkout-frame .razorpay-test-label,
+[class*="razorpay"] [class*="test"],
+.razorpay-container > div:first-child {
+  display: none !important;
+}
+
+/* Additional Razorpay styling */
+.razorpay-container {
+  z-index: 9999 !important;
+}
+
+.razorpay-checkout-frame {
+  border-radius: 8px !important;
+}

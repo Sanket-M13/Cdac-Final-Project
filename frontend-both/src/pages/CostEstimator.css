@@ -1,0 +1,48 @@
+.cost-estimator-page {
+  padding: calc(80px + var(--space-lg)) 0 var(--space-lg);
+  min-height: 100vh;
+  background: var(--bg-900);
+}
+
+.estimator-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: var(--space-lg);
+}
+
+.station-info {
+  background: rgba(173, 33, 255, 0.1);
+  padding: var(--space-md);
+  border-radius: var(--radius-sm);
+}
+
+.estimate-result-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(173, 33, 255, 0.3);
+}
+
+.estimate-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.estimate-icon {
+  color: var(--accent);
+}
+
+.total-cost {
+  text-align: center;
+  padding: var(--space-lg);
+  background: rgba(173, 33, 255, 0.1);
+  border-radius: var(--radius-md);
+  margin: var(--space-lg) 0;
+}
+
+.total-cost h3 {
+  color: var(--accent);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  margin: 0;
+}
