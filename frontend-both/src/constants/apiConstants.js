@@ -1,7 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://evcharger-springboot.onrender.com/api',
-  TIMEOUT: 10000,
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://evcharger-springboot.onrender.com',
+  TIMEOUT: 60000,
   HEADERS: {
     'Content-Type': 'application/json',
   }
@@ -18,7 +18,7 @@ export const API_ENDPOINTS = {
     ME: '/auth/me',
     GOOGLE: '/auth/google'
   },
-  
+
 
   STATIONS: {
     BASE: '/stations',
@@ -26,7 +26,7 @@ export const API_ENDPOINTS = {
     NEARBY: '/stations/nearby',
     SEARCH: '/stations/search'
   },
-  
+
 
   BOOKINGS: {
     BASE: '/bookings',
@@ -43,14 +43,14 @@ export const API_ENDPOINTS = {
     PROFILE: '/users/profile',
     PASSWORD: (id) => `/users/${id}/password`
   },
-  
+
 
   REVIEWS: {
     BASE: '/reviews',
     BY_STATION: (stationId) => `/reviews/station/${stationId}`,
     ADMIN: '/reviews/admin'
   },
-  
+
 
   ADMIN: {
     DASHBOARD: '/admin/dashboard-stats',
@@ -59,14 +59,14 @@ export const API_ENDPOINTS = {
     REVIEWS: '/admin/reviews',
     ANALYTICS: '/admin/station-analytics'
   },
-  
+
 
   CARS: {
     BASE: '/cars',
     USER: '/cars/user',
     BY_ID: (id) => `/cars/${id}`
   },
-  
+
 
   PAYMENT: {
     CREATE_ORDER: '/payment/create-order',
@@ -86,18 +86,18 @@ export const APP_CONSTANTS = {
   TOKEN_KEY: 'token',
   USER_KEY: 'user',
   REFRESH_TOKEN_KEY: 'refreshToken',
-  
+
 
   DEFAULT_PAGE_SIZE: 10,
   MAX_PAGE_SIZE: 100,
 
   MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif'],
-  
+
 
   MIN_PASSWORD_LENGTH: 6,
   MAX_PASSWORD_LENGTH: 128,
-  
+
 
   BOOKING_STATUS: {
     PENDING: 'Pending',
@@ -105,7 +105,7 @@ export const APP_CONSTANTS = {
     CANCELLED: 'Cancelled',
     COMPLETED: 'Completed'
   },
-  
+
 
   STATION_STATUS: {
     AVAILABLE: 'Available',
@@ -113,7 +113,7 @@ export const APP_CONSTANTS = {
     MAINTENANCE: 'Maintenance',
     OFFLINE: 'Offline'
   },
-  
+
 
   USER_ROLES: {
     ADMIN: 'Admin',
