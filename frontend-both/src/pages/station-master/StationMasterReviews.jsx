@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_CONFIG } from '../../constants/apiConstants';
 import { Container, Row, Col, Card, Table, Badge, Button } from 'react-bootstrap';
 import { FiStar, FiUser, FiCalendar, FiMapPin } from 'react-icons/fi';
 import toast from 'react-hot-toast';
@@ -13,7 +14,7 @@ const StationMasterReviews = () => {
 
   const fetchReviews = async () => {
     try {
-      const response = await fetch('https://evcharger-springboot.onrender.com/api/station-master/reviews', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/station-master/reviews`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -66,7 +67,7 @@ const StationMasterReviews = () => {
         background: 'linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,0,0,0.5))',
         overflow: 'hidden'
       }}>
-        <img 
+        <img
           src="https://www.vecteezy.com/vector-art/29898290-customer-review-usability-evaluation-feedback-rating-system-isometric-concept-vector-illustration"
           alt="EV Charging Reviews"
           style={{
@@ -89,16 +90,16 @@ const StationMasterReviews = () => {
         }} />
         <Container style={{ height: '100%', display: 'flex', alignItems: 'center', paddingTop: '80px' }}>
           <div style={{ color: 'white', zIndex: 2 }}>
-            <h1 style={{ 
-              fontSize: '3rem', 
-              fontWeight: 'bold', 
+            <h1 style={{
+              fontSize: '3rem',
+              fontWeight: 'bold',
               marginBottom: '1rem',
               textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
             }}>
               Station Reviews
             </h1>
-            <p style={{ 
-              fontSize: '1.2rem', 
+            <p style={{
+              fontSize: '1.2rem',
               opacity: 0.9,
               textShadow: '1px 1px 2px rgba(0,0,0,0.5)'
             }}>
@@ -126,8 +127,8 @@ const StationMasterReviews = () => {
 
       <Container style={{ paddingTop: '40px', paddingBottom: '50px' }}>
         {reviews.length === 0 ? (
-          <Card style={{ 
-            background: 'linear-gradient(135deg, #1a1a1a, #2a2a2a)', 
+          <Card style={{
+            background: 'linear-gradient(135deg, #1a1a1a, #2a2a2a)',
             border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: '15px',
             boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
@@ -154,8 +155,8 @@ const StationMasterReviews = () => {
                 }}>
                   <Card.Body style={{ padding: '20px' }}>
                     <div style={{ marginBottom: '15px' }}>
-                      <h5 style={{ 
-                        color: 'white', 
+                      <h5 style={{
+                        color: 'white',
                         marginBottom: '5px',
                         display: 'flex',
                         alignItems: 'center'
@@ -165,9 +166,9 @@ const StationMasterReviews = () => {
                       </h5>
                     </div>
 
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
                       marginBottom: '15px',
                       padding: '10px',
                       background: 'rgba(255,255,255,0.05)',
@@ -176,7 +177,7 @@ const StationMasterReviews = () => {
                       <div style={{ marginRight: '10px' }}>
                         {renderStars(review.rating)}
                       </div>
-                      <Badge 
+                      <Badge
                         bg={getRatingBadge(review.rating)}
                         style={{ fontSize: '12px' }}
                       >
@@ -185,8 +186,8 @@ const StationMasterReviews = () => {
                     </div>
 
                     <div style={{ marginBottom: '15px' }}>
-                      <p style={{ 
-                        color: 'rgba(255,255,255,0.8)', 
+                      <p style={{
+                        color: 'rgba(255,255,255,0.8)',
                         fontSize: '14px',
                         lineHeight: '1.5',
                         fontStyle: review.comment ? 'normal' : 'italic'

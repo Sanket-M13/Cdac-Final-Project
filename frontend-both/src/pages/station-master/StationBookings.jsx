@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_CONFIG } from '../../constants/apiConstants';
 import { Container, Row, Col, Card, Button, Table, Badge, Modal, Form } from 'react-bootstrap';
 import { FiCheck, FiX, FiClock, FiMapPin } from 'react-icons/fi';
 import toast from 'react-hot-toast';
@@ -17,12 +18,12 @@ const StationBookings = () => {
 
   const fetchStations = async () => {
     try {
-      const response = await fetch('https://evcharger-springboot.onrender.com/api/station-master/stations', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/station-master/stations`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setStations(data || []);
@@ -36,12 +37,12 @@ const StationBookings = () => {
 
   const fetchStationBookings = async (stationId) => {
     try {
-      const response = await fetch(`https://evcharger-springboot.onrender.com/api/station-master/stations/${stationId}/bookings`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/station-master/stations/${stationId}/bookings`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('Real bookings from API:', data);
@@ -64,12 +65,12 @@ const StationBookings = () => {
   const handleBookingAction = async (bookingId, action) => {
     try {
       console.log(`Attempting to ${action} booking ${bookingId}`);
-      
+
       // For real bookings, call API
       const endpoint = action === 'complete' ? 'complete' : action;
-      const url = `https://evcharger-springboot.onrender.com/api/station-master/bookings/${bookingId}/${endpoint}`;
+      const url = `${API_CONFIG.BASE_URL}/station-master/bookings/${bookingId}/${endpoint}`;
       console.log('API URL:', url);
-      
+
       const response = await fetch(url, {
         method: 'PUT',
         headers: {
@@ -151,7 +152,7 @@ const StationBookings = () => {
                   <div
                     key={station.id}
                     className={`p-3 mb-2 rounded cursor-pointer ${selectedStation?.id === station.id ? 'bg-primary' : 'bg-secondary'}`}
-                    style={{ 
+                    style={{
                       cursor: 'pointer',
                       backgroundColor: selectedStation?.id === station.id ? '#ad21ff' : '#4a5568',
                       transition: 'all 0.3s'

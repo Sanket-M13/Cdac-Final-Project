@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_CONFIG, API_ENDPOINTS } from '../constants/apiConstants';
 import { Container, Row, Col, Card, Button } from 'react-bootstrap';
 import { Link, Navigate } from 'react-router-dom';
 import { FiMapPin, FiClock, FiDollarSign, FiZap, FiCalendar, FiTrendingUp, FiPlus } from 'react-icons/fi';
@@ -28,16 +29,16 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await fetch('https://evcharger-springboot.onrender.com/api/bookings/user', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.BOOKINGS.USER}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         const bookings = data.bookings || [];
-        
+
         const activeBookings = bookings.filter(b => b.status === 'Confirmed');
         const totalSpent = bookings.reduce((sum, b) => sum + (b.amount || 0), 0);
 
@@ -136,7 +137,7 @@ const Dashboard = () => {
               </Card.Body>
             </Card>
           </Col>
-          
+
           <Col md={6} lg={3} className="mb-3">
             <Card className="stat-card">
               <Card.Body>
@@ -152,7 +153,7 @@ const Dashboard = () => {
               </Card.Body>
             </Card>
           </Col>
-          
+
           <Col md={6} lg={3} className="mb-3">
             <Card className="stat-card">
               <Card.Body>
@@ -168,7 +169,7 @@ const Dashboard = () => {
               </Card.Body>
             </Card>
           </Col>
-          
+
           <Col md={6} lg={3} className="mb-3">
             <Card className="stat-card">
               <Card.Body>
@@ -251,7 +252,7 @@ const Dashboard = () => {
               </Card.Body>
             </Card>
           </Col>
-          
+
           <Col lg={4}>
             <Card className="tips-card">
               <Card.Header>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_CONFIG } from '../constants/apiConstants';
 import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiPhone, FiTruck } from 'react-icons/fi';
@@ -94,8 +95,8 @@ const Register = () => {
   const formatVehicleNumber = (value) => {
 
     const cleaned = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-    
-   
+
+
     if (cleaned.length <= 4) {
       return cleaned;
     } else if (cleaned.length <= 6) {
@@ -199,14 +200,14 @@ const Register = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === 'vehicleNumber') {
       const formatted = formatVehicleNumber(value);
       setFormData(prev => ({ ...prev, [name]: formatted }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
-    
+
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -216,17 +217,17 @@ const Register = () => {
     try {
       const payload = JSON.parse(atob(credentialResponse.credential.split('.')[1]));
       const googlePassword = payload.sub;
-      
+
       try {
-        const loginResponse = await fetch('https://evcharger-springboot.onrender.com/api/auth/login', {
+        const loginResponse = await fetch(`${API_CONFIG.BASE_URL}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             email: payload.email,
             password: googlePassword
           })
         });
-        
+
         if (loginResponse.ok) {
           const data = await loginResponse.json();
           localStorage.setItem('token', data.token);
@@ -238,7 +239,7 @@ const Register = () => {
       } catch (loginError) {
         // Login failed, show registration form
       }
-      
+
       setCarDetails({
         name: payload.name || '',
         email: payload.email || '',
@@ -257,37 +258,37 @@ const Register = () => {
 
   const validateRegistrationForm = () => {
     const errors = {};
-    
+
     const phoneRegex = /^[0-9]{10}$/;
     if (!carDetails.phone) {
       errors.phone = 'Phone number is required';
     } else if (!phoneRegex.test(carDetails.phone)) {
       errors.phone = 'Phone number must be 10 digits';
     }
-    
+
     const carNumberRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
     if (!carDetails.carNumber) {
       errors.carNumber = 'Car number is required';
     } else if (!carNumberRegex.test(carDetails.carNumber.toUpperCase())) {
       errors.carNumber = 'Invalid format. Use: MH12AB1234';
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleCarDetailsSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateRegistrationForm()) {
       return;
     }
-    
+
     try {
-      const response = await fetch('https://evcharger-springboot.onrender.com/api/auth/google-register', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/auth/google-register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           name: carDetails.name,
           email: carDetails.email,
           password: carDetails.password,
@@ -299,7 +300,7 @@ const Register = () => {
           role: 'User'
         })
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('token', data.token);
@@ -318,13 +319,13 @@ const Register = () => {
 
   const handleEmailVerification = async (e) => {
     e.preventDefault();
-    
+
     if (emailOTP === generatedEmailOTP) {
-     
+
       setLoading(true);
       try {
         const result = await register(pendingRegistrationData);
-        
+
         if (result.success) {
           toast.success('Registration successful! Welcome to EV Charger Finder!');
           navigate('/login');
@@ -344,13 +345,13 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
-    
+
     try {
       const registrationData = {
         name: `${formData.firstName} ${formData.lastName}`,
@@ -367,7 +368,7 @@ const Register = () => {
 
       if (formData.email.endsWith('@evcharger.com')) {
         const result = await register(registrationData);
-        
+
         if (result.success) {
           toast.success('Registration successful! Welcome to EV Charger Finder!');
           navigate('/login');
@@ -379,7 +380,7 @@ const Register = () => {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         setGeneratedEmailOTP(otp);
         setPendingRegistrationData(registrationData);
-        
+
         try {
           await emailjs.send(
             'service_5ge65dl',
@@ -395,7 +396,7 @@ const Register = () => {
             },
             'qXmPfLLE2JuNBPuuV'
           );
-          
+
           toast.success('OTP sent to your email');
           setShowEmailVerification(true);
         } catch (error) {
@@ -688,8 +689,8 @@ const Register = () => {
                     )}
                   </Form.Group>
 
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="btn btn-primary w-100 mb-3"
                     disabled={loading}
                   >
@@ -714,7 +715,7 @@ const Register = () => {
                 </div>
               </Card.Body>
             </Card>
-            
+
             {/* Registration Modal */}
             {showCarDetails && (
               <div className="modal-overlay" onClick={() => setShowCarDetails(false)}>
@@ -725,15 +726,15 @@ const Register = () => {
                         <h3 className="auth-title mb-1">Complete Registration</h3>
                         <p className="auth-subtitle mb-0">Fill in your details to continue</p>
                       </div>
-                      <button 
-                        className="btn-close" 
+                      <button
+                        className="btn-close"
                         onClick={() => setShowCarDetails(false)}
                         style={{ background: 'none', border: 'none', color: 'white', fontSize: '24px' }}
                       >
                         ×
                       </button>
                     </div>
-                    
+
                     <Form onSubmit={handleCarDetailsSubmit}>
                       <div className="row">
                         <div className="col-md-6">
@@ -759,7 +760,7 @@ const Register = () => {
                           </Form.Group>
                         </div>
                       </div>
-                      
+
                       <div className="row">
                         <div className="col-md-6">
                           <Form.Group className="mb-3">
@@ -769,8 +770,8 @@ const Register = () => {
                               value={carDetails.phone}
                               onChange={(e) => {
                                 const value = e.target.value.replace(/\D/g, '').slice(0, 10);
-                                setCarDetails({...carDetails, phone: value});
-                                if (formErrors.phone) setFormErrors({...formErrors, phone: ''});
+                                setCarDetails({ ...carDetails, phone: value });
+                                if (formErrors.phone) setFormErrors({ ...formErrors, phone: '' });
                               }}
                               className={`auth-input ${formErrors.phone ? 'is-invalid' : ''}`}
                               required
@@ -786,8 +787,8 @@ const Register = () => {
                               value={carDetails.carNumber}
                               onChange={(e) => {
                                 const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
-                                setCarDetails({...carDetails, carNumber: value});
-                                if (formErrors.carNumber) setFormErrors({...formErrors, carNumber: ''});
+                                setCarDetails({ ...carDetails, carNumber: value });
+                                if (formErrors.carNumber) setFormErrors({ ...formErrors, carNumber: '' });
                               }}
                               className={`auth-input ${formErrors.carNumber ? 'is-invalid' : ''}`}
                               required
@@ -796,7 +797,7 @@ const Register = () => {
                           </Form.Group>
                         </div>
                       </div>
-                      
+
                       <div className="row">
                         <div className="col-md-4">
                           <Form.Group className="mb-3">
@@ -804,7 +805,7 @@ const Register = () => {
                               value={carDetails.vehicleType}
                               onChange={(e) => {
                                 const newType = e.target.value;
-                                setCarDetails({...carDetails, vehicleType: newType, carBrand: '', vehicleModel: ''});
+                                setCarDetails({ ...carDetails, vehicleType: newType, carBrand: '', vehicleModel: '' });
                                 if (newType && sampleVehicleData[newType]) {
                                   setVehicleBrands(sampleVehicleData[newType]);
                                 } else {
@@ -827,7 +828,7 @@ const Register = () => {
                               value={carDetails.carBrand}
                               onChange={(e) => {
                                 const newBrand = e.target.value;
-                                setCarDetails({...carDetails, carBrand: newBrand, vehicleModel: ''});
+                                setCarDetails({ ...carDetails, carBrand: newBrand, vehicleModel: '' });
                                 if (newBrand) {
                                   const selectedBrand = vehicleBrands.find(b => b.name === newBrand);
                                   if (selectedBrand && selectedBrand.models) {
@@ -852,7 +853,7 @@ const Register = () => {
                           <Form.Group className="mb-3">
                             <Form.Select
                               value={carDetails.vehicleModel}
-                              onChange={(e) => setCarDetails({...carDetails, vehicleModel: e.target.value})}
+                              onChange={(e) => setCarDetails({ ...carDetails, vehicleModel: e.target.value })}
                               className="auth-input"
                               disabled={!carDetails.carBrand || vehicleModels.length === 0}
                               required
@@ -865,7 +866,7 @@ const Register = () => {
                           </Form.Group>
                         </div>
                       </div>
-                      
+
                       <Button type="submit" className="btn btn-primary w-100 mt-3">
                         Complete Registration
                       </Button>
@@ -874,7 +875,7 @@ const Register = () => {
                 </Card>
               </div>
             )}
-            
+
             {/* Email Verification Modal */}
             {showEmailVerification && (
               <div className="modal-overlay" onClick={() => setShowEmailVerification(false)}>
@@ -885,15 +886,15 @@ const Register = () => {
                         <h3 className="auth-title mb-1">Verify Email</h3>
                         <p className="auth-subtitle mb-0">Enter OTP sent to your email</p>
                       </div>
-                      <button 
-                        className="btn-close" 
+                      <button
+                        className="btn-close"
                         onClick={() => setShowEmailVerification(false)}
                         style={{ background: 'none', border: 'none', color: 'white', fontSize: '24px' }}
                       >
                         ×
                       </button>
                     </div>
-                    
+
                     <Form onSubmit={handleEmailVerification}>
                       <Form.Group className="mb-3">
                         <Form.Control

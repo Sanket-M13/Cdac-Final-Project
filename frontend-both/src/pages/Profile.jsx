@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_CONFIG } from '../constants/apiConstants';
 import { Container, Row, Col, Card, Form, Button, Tab, Tabs, Badge } from 'react-bootstrap';
 import { FiUser, FiMail, FiLock, FiTruck, FiEdit3, FiShield, FiCamera } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
@@ -66,12 +67,12 @@ const Profile = () => {
 
   const loadUserData = async () => {
     try {
-      const response = await fetch('https://evcharger-springboot.onrender.com/api/auth/me', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      
+
       if (response.ok) {
         const userData = await response.json();
         setProfileData({
@@ -110,7 +111,7 @@ const Profile = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('https://evcharger-springboot.onrender.com/api/users/profile', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/users/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -154,7 +155,7 @@ const Profile = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('https://evcharger-springboot.onrender.com/api/users/change-password', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/users/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -188,7 +189,7 @@ const Profile = () => {
     <div className="profile-page">
       <Container>
         <div className="profile-banner">
-          <img 
+          <img
             src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
             alt="Profile Banner"
             className="banner-image"
@@ -232,8 +233,8 @@ const Profile = () => {
                   onSelect={(k) => setActiveTab(k)}
                   className="profile-tabs"
                 >
-                  <Tab 
-                    eventKey="profile" 
+                  <Tab
+                    eventKey="profile"
                     title={
                       <span>
                         <FiEdit3 className="me-2" />
@@ -246,7 +247,7 @@ const Profile = () => {
                         <h4>Personal Information</h4>
                         <p className="text-muted">Update your personal details and preferences</p>
                       </div>
-                      
+
                       <Form onSubmit={handleProfileSubmit}>
                         <Row>
                           <Col md={6}>
@@ -306,7 +307,7 @@ const Profile = () => {
                               </h5>
                               <p className="text-muted">Add your vehicle details for better charging recommendations</p>
                             </div>
-                            
+
                             <Form.Group className="mb-4">
                               <Form.Label className="form-label">Vehicle Number</Form.Label>
                               <div className="input-group">
@@ -377,8 +378,8 @@ const Profile = () => {
                         )}
 
                         <div className="form-actions">
-                          <Button 
-                            type="submit" 
+                          <Button
+                            type="submit"
                             className="btn-primary btn-lg"
                             disabled={loading}
                           >
@@ -399,8 +400,8 @@ const Profile = () => {
                     </div>
                   </Tab>
 
-                  <Tab 
-                    eventKey="password" 
+                  <Tab
+                    eventKey="password"
                     title={
                       <span>
                         <FiLock className="me-2" />
@@ -413,7 +414,7 @@ const Profile = () => {
                         <h4>Change Password</h4>
                         <p className="text-muted">Keep your account secure with a strong password</p>
                       </div>
-                      
+
                       <Form onSubmit={handlePasswordSubmit}>
                         <Form.Group className="mb-4">
                           <Form.Label className="form-label">Current Password</Form.Label>
@@ -476,8 +477,8 @@ const Profile = () => {
                         </div>
 
                         <div className="form-actions">
-                          <Button 
-                            type="submit" 
+                          <Button
+                            type="submit"
                             className="btn-primary btn-lg"
                             disabled={loading}
                           >

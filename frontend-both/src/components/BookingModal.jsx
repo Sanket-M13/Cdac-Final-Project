@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API_CONFIG, API_ENDPOINTS } from '../constants/apiConstants'
 import { Modal, Row, Col, Card, Badge, Button, Form, Alert, Spinner } from 'react-bootstrap'
 import { FaClock, FaRupeeSign, FaCalendarAlt, FaBolt, FaCheckCircle } from 'react-icons/fa'
 import { bookingService } from '../services/bookingService'
@@ -33,14 +34,15 @@ const BookingModal = ({ show, onHide, station, selectedVehicle }) => {
     setError('')
     try {
       console.log('Fetching slots for station:', stationId, 'date:', date)
-      
+
       // Use bookings API endpoint for slots
-      const response = await fetch(`https://evcharger-springboot.onrender.com/api/bookings/slots/${stationId}?date=${date}`)
-      
+      // Use bookings API endpoint for slots
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.BOOKINGS.BASE}/slots/${stationId}?date=${date}`)
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
-      
+
       const slots = await response.json()
       console.log('Received slots:', slots)
       setAvailableSlots(slots)
@@ -94,16 +96,16 @@ const BookingModal = ({ show, onHide, station, selectedVehicle }) => {
     setLoading(true)
     try {
       const amount = calculateAmount()
-      
+
       // Initialize Razorpay
       const isRazorpayLoaded = await paymentService.initializeRazorpay()
       if (!isRazorpayLoaded) {
         throw new Error('Razorpay SDK failed to load')
       }
-      
+
       // Create order with proper amount handling
       const order = await paymentService.createOrder(amount)
-      
+
       // Process payment
       paymentService.processPayment(
         order,
@@ -120,9 +122,9 @@ const BookingModal = ({ show, onHide, station, selectedVehicle }) => {
               totalAmount: amount,
               paymentId: response.razorpay_payment_id
             }
-            
+
             const createdBooking = await bookingService.createBooking(booking)
-            
+
             // Send email confirmation
             if (user?.email) {
               try {
@@ -143,7 +145,7 @@ const BookingModal = ({ show, onHide, station, selectedVehicle }) => {
                 console.warn('Email sending failed:', emailError)
               }
             }
-            
+
             setStep(3)
             setLoading(false)
           } catch (error) {
@@ -194,7 +196,7 @@ const BookingModal = ({ show, onHide, station, selectedVehicle }) => {
       </Modal.Header>
       <Modal.Body style={{ backgroundColor: '#1a1a1a', color: 'white' }}>
         {error && <Alert variant="danger">{error}</Alert>}
-        
+
         {/* Step 1: Time Slot Selection */}
         {step === 1 && (
           <>
@@ -232,11 +234,10 @@ const BookingModal = ({ show, onHide, station, selectedVehicle }) => {
               <Row>
                 {availableSlots.map((slot, index) => (
                   <Col md={4} key={index} className="mb-3">
-                    <Card 
-                      className={`text-center ${
-                        selectedSlot?.startTime === slot.startTime ? 'border-primary bg-light' : 
-                        slot.isAvailable ? 'border-success' : 'border-danger'
-                      }`}
+                    <Card
+                      className={`text-center ${selectedSlot?.startTime === slot.startTime ? 'border-primary bg-light' :
+                          slot.isAvailable ? 'border-success' : 'border-danger'
+                        }`}
                       style={{ cursor: slot.isAvailable ? 'pointer' : 'not-allowed' }}
                       onClick={() => handleSlotSelect(slot)}
                     >
@@ -259,7 +260,7 @@ const BookingModal = ({ show, onHide, station, selectedVehicle }) => {
                   <Form.Label>Current Battery: {bookingData.currentPercentage}%</Form.Label>
                   <Form.Range
                     value={bookingData.currentPercentage}
-                    onChange={(e) => setBookingData({...bookingData, currentPercentage: parseInt(e.target.value)})}
+                    onChange={(e) => setBookingData({ ...bookingData, currentPercentage: parseInt(e.target.value) })}
                     min="5"
                     max="95"
                   />
@@ -270,7 +271,7 @@ const BookingModal = ({ show, onHide, station, selectedVehicle }) => {
                   <Form.Label>Target Battery: {bookingData.targetPercentage}%</Form.Label>
                   <Form.Range
                     value={bookingData.targetPercentage}
-                    onChange={(e) => setBookingData({...bookingData, targetPercentage: parseInt(e.target.value)})}
+                    onChange={(e) => setBookingData({ ...bookingData, targetPercentage: parseInt(e.target.value) })}
                     min={bookingData.currentPercentage}
                     max="100"
                   />
@@ -335,8 +336,8 @@ const BookingModal = ({ show, onHide, station, selectedVehicle }) => {
         {step === 1 && (
           <>
             <Button variant="secondary" onClick={handleClose}>Cancel</Button>
-            <Button 
-              variant="primary" 
+            <Button
+              variant="primary"
               onClick={handleProceedToPayment}
               disabled={!selectedSlot}
             >
@@ -347,8 +348,8 @@ const BookingModal = ({ show, onHide, station, selectedVehicle }) => {
         {step === 2 && (
           <>
             <Button variant="secondary" onClick={() => setStep(1)}>Back</Button>
-            <Button 
-              variant="success" 
+            <Button
+              variant="success"
               onClick={handlePayment}
               disabled={loading}
             >

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_CONFIG } from '../../constants/apiConstants';
 import { Container, Row, Col, Card, Table, Button, Modal, Form, Badge } from 'react-bootstrap';
 import { FiPlus, FiEdit, FiTrash2, FiCheck, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
@@ -30,7 +31,7 @@ const ManageStations = () => {
   const fetchStations = async () => {
     try {
       // Use admin endpoint to get all stations including pending ones
-      const response = await fetch('https://evcharger-springboot.onrender.com/api/stations', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/stations`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -63,7 +64,7 @@ const ManageStations = () => {
         await stationService.createStation(stationData);
         toast.success('Station created successfully');
       }
-      
+
       setShowModal(false);
       resetForm();
       fetchStations();
@@ -107,14 +108,14 @@ const ManageStations = () => {
 
   const handleApprove = async (id) => {
     try {
-      const response = await fetch(`https://evcharger-springboot.onrender.com/api/admin/stations/${id}/approve`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/admin/stations/${id}/approve`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (response.ok) {
         toast.success('Station approved successfully');
         fetchStations();
@@ -130,14 +131,14 @@ const ManageStations = () => {
   const handleReject = async (id) => {
     if (window.confirm('Are you sure you want to reject this station?')) {
       try {
-        const response = await fetch(`https://evcharger-springboot.onrender.com/api/admin/stations/${id}/reject`, {
+        const response = await fetch(`${API_CONFIG.BASE_URL}/admin/stations/${id}/reject`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
             'Content-Type': 'application/json'
           }
         });
-        
+
         if (response.ok) {
           toast.success('Station rejected successfully');
           fetchStations();
@@ -186,7 +187,7 @@ const ManageStations = () => {
                 <h1 style={{ color: 'var(--fg)' }}>Manage Stations</h1>
                 <p style={{ color: 'var(--muted)' }}>Add, edit, and manage charging stations</p>
               </div>
-              <Button 
+              <Button
                 onClick={handleAddNew}
                 style={{ background: 'var(--accent)', border: 'none' }}
               >
@@ -232,16 +233,16 @@ const ManageStations = () => {
                       <div className="d-flex gap-1">
                         {(!station.approvalStatus || station.approvalStatus === 'Pending') && (
                           <>
-                            <Button 
-                              size="sm" 
-                              variant="outline-success" 
+                            <Button
+                              size="sm"
+                              variant="outline-success"
                               onClick={() => handleApprove(station.id)}
                               title="Approve Station"
                             >
                               <FiCheck />
                             </Button>
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               variant="outline-danger"
                               onClick={() => handleReject(station.id)}
                               title="Reject Station"
@@ -250,15 +251,15 @@ const ManageStations = () => {
                             </Button>
                           </>
                         )}
-                        <Button 
-                          size="sm" 
-                          variant="outline-primary" 
+                        <Button
+                          size="sm"
+                          variant="outline-primary"
                           onClick={() => handleEdit(station)}
                         >
                           <FiEdit />
                         </Button>
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline-danger"
                           onClick={() => handleDelete(station.id)}
                         >
@@ -288,7 +289,7 @@ const ManageStations = () => {
                     <Form.Control
                       type="text"
                       value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       style={{ backgroundColor: '#2a2a2a', border: '1px solid rgba(255,255,255,0.3)', color: 'white' }}
                       required
                     />
@@ -299,7 +300,7 @@ const ManageStations = () => {
                     <Form.Label style={{ color: 'white' }}>Status</Form.Label>
                     <Form.Select
                       value={formData.status}
-                      onChange={(e) => setFormData({...formData, status: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                       style={{ backgroundColor: '#2a2a2a', border: '1px solid rgba(255,255,255,0.3)', color: 'white' }}
                     >
                       <option value="Available" style={{ backgroundColor: '#2a2a2a', color: 'white' }}>Available</option>
@@ -310,13 +311,13 @@ const ManageStations = () => {
                   </Form.Group>
                 </Col>
               </Row>
-              
+
               <Form.Group className="mb-3">
                 <Form.Label style={{ color: 'white' }}>Address</Form.Label>
                 <Form.Control
                   type="text"
                   value={formData.address}
-                  onChange={(e) => setFormData({...formData, address: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   style={{ backgroundColor: '#2a2a2a', border: '1px solid rgba(255,255,255,0.3)', color: 'white' }}
                   required
                 />
@@ -330,7 +331,7 @@ const ManageStations = () => {
                       type="number"
                       step="any"
                       value={formData.latitude}
-                      onChange={(e) => setFormData({...formData, latitude: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
                       style={{ backgroundColor: '#2a2a2a', border: '1px solid rgba(255,255,255,0.3)', color: 'white' }}
                       required
                     />
@@ -343,7 +344,7 @@ const ManageStations = () => {
                       type="number"
                       step="any"
                       value={formData.longitude}
-                      onChange={(e) => setFormData({...formData, longitude: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
                       style={{ backgroundColor: '#2a2a2a', border: '1px solid rgba(255,255,255,0.3)', color: 'white' }}
                       required
                     />
@@ -358,7 +359,7 @@ const ManageStations = () => {
                     <Form.Control
                       type="text"
                       value={Array.isArray(formData.connectorTypes) ? formData.connectorTypes.join(', ') : ''}
-                      onChange={(e) => setFormData({...formData, connectorTypes: e.target.value.split(',').map(s => s.trim()).filter(s => s)})}
+                      onChange={(e) => setFormData({ ...formData, connectorTypes: e.target.value.split(',').map(s => s.trim()).filter(s => s) })}
                       placeholder="e.g., Type 2, CCS, CHAdeMO"
                       style={{ backgroundColor: '#2a2a2a', border: '1px solid rgba(255,255,255,0.3)', color: 'white' }}
                     />
@@ -370,7 +371,7 @@ const ManageStations = () => {
                     <Form.Control
                       type="text"
                       value={Array.isArray(formData.amenities) ? formData.amenities.join(', ') : ''}
-                      onChange={(e) => setFormData({...formData, amenities: e.target.value.split(',').map(s => s.trim()).filter(s => s)})}
+                      onChange={(e) => setFormData({ ...formData, amenities: e.target.value.split(',').map(s => s.trim()).filter(s => s) })}
                       placeholder="e.g., WiFi, Restroom, Cafe"
                       style={{ backgroundColor: '#2a2a2a', border: '1px solid rgba(255,255,255,0.3)', color: 'white' }}
                     />
@@ -385,7 +386,7 @@ const ManageStations = () => {
                     <Form.Control
                       type="text"
                       value={formData.powerOutput}
-                      onChange={(e) => setFormData({...formData, powerOutput: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, powerOutput: e.target.value })}
                       placeholder="e.g., 50kW"
                       style={{ backgroundColor: '#2a2a2a', border: '1px solid rgba(255,255,255,0.3)', color: 'white' }}
                       required
@@ -399,7 +400,7 @@ const ManageStations = () => {
                       type="number"
                       step="0.01"
                       value={formData.pricePerKwh}
-                      onChange={(e) => setFormData({...formData, pricePerKwh: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, pricePerKwh: e.target.value })}
                       style={{ backgroundColor: '#2a2a2a', border: '1px solid rgba(255,255,255,0.3)', color: 'white' }}
                       required
                     />
@@ -411,7 +412,7 @@ const ManageStations = () => {
                     <Form.Control
                       type="text"
                       value={formData.operatingHours}
-                      onChange={(e) => setFormData({...formData, operatingHours: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, operatingHours: e.target.value })}
                       placeholder="e.g., 24/7"
                       style={{ backgroundColor: '#2a2a2a', border: '1px solid rgba(255,255,255,0.3)', color: 'white' }}
                       required
@@ -427,7 +428,7 @@ const ManageStations = () => {
                     <Form.Control
                       type="number"
                       value={formData.totalSlots}
-                      onChange={(e) => setFormData({...formData, totalSlots: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, totalSlots: e.target.value })}
                       style={{ backgroundColor: '#2a2a2a', border: '1px solid rgba(255,255,255,0.3)', color: 'white' }}
                       required
                     />
@@ -439,7 +440,7 @@ const ManageStations = () => {
                     <Form.Control
                       type="number"
                       value={formData.availableSlots}
-                      onChange={(e) => setFormData({...formData, availableSlots: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, availableSlots: e.target.value })}
                       style={{ backgroundColor: '#2a2a2a', border: '1px solid rgba(255,255,255,0.3)', color: 'white' }}
                       required
                     />
@@ -452,7 +453,7 @@ const ManageStations = () => {
             <Button variant="secondary" onClick={() => setShowModal(false)}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleSubmit}
               style={{ backgroundColor: '#007bff', border: 'none', color: 'white' }}
             >

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_CONFIG } from '../constants/apiConstants';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -27,16 +28,16 @@ const carIcon = new L.Icon({
 
 
 const chargingIcon = (isReachableAndAvailable = true, isReachable = true, isAvailable = true) => {
-  let color = '#dc3545'; 
-  
+  let color = '#dc3545';
+
   if (isReachableAndAvailable) {
-    color = '#28a745'; 
+    color = '#28a745';
   } else if (isReachable && !isAvailable) {
-    color = '#ffc107'; 
+    color = '#ffc107';
   } else if (!isReachable) {
-    color = '#6c757d'; 
+    color = '#6c757d';
   }
-  
+
   return new L.Icon({
     iconUrl: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
       <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
@@ -52,22 +53,22 @@ const chargingIcon = (isReachableAndAvailable = true, isReachable = true, isAvai
 
 const InteractiveMap = ({ filters, userRange, vehicleData }) => {
   const [stations, setStations] = useState([]);
-  const [userLocation, setUserLocation] = useState({ lat: 19.0760, lng: 72.8777 }); 
+  const [userLocation, setUserLocation] = useState({ lat: 19.0760, lng: 72.8777 });
   const [loading, setLoading] = useState(true);
 
   const calculateDistance = (lat1, lng1, lat2, lng2) => {
-    const R = 6371; 
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLng = (lng2 - lng1) * Math.PI / 180;
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return Math.round(R * c);
   };
 
   useEffect(() => {
-  
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -87,23 +88,23 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
   }, []);
 
   useEffect(() => {
-  
+
     const fetchStations = async () => {
       try {
-        const response = await fetch('https://evcharger-springboot.onrender.com/api/stations');
+        const response = await fetch(`${API_CONFIG.BASE_URL}/stations`);
         const data = await response.json();
-        
+
         if (data.stations) {
 
           const apiStations = data.stations.map(station => {
             const distance = userLocation ? calculateDistance(
-              userLocation.lat, userLocation.lng, 
+              userLocation.lat, userLocation.lng,
               station.latitude, station.longitude
             ) : 0;
-            
+
             const isReachable = userRange > 0 ? distance <= userRange : true;
             const isAvailable = station.availableSlots > 0;
-            
+
             return {
               id: station.id,
               name: station.name,
@@ -123,9 +124,9 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
               priority: isReachable && isAvailable ? 1 : isReachable ? 2 : 3
             };
           });
-          
+
           let filteredStations = apiStations;
-          
+
           if (filters.status !== 'all') {
             filteredStations = filteredStations.filter(station => {
               if (filters.status === 'available') return station.availableSlots > 0;
@@ -134,7 +135,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
               return true;
             });
           }
-          
+
           if (filters.connector !== 'all') {
             filteredStations = filteredStations.filter(station => station.connector === filters.connector);
           }
@@ -145,7 +146,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
             }
             return a.distance - b.distance;
           });
-          
+
           setStations(filteredStations);
         }
       } catch (error) {
@@ -178,7 +179,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      
+
       <Marker
         position={[userLocation.lat, userLocation.lng]}
         icon={carIcon}
@@ -190,7 +191,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
           </div>
         </Popup>
       </Marker>
-      
+
       {stations.map(station => (
         <Marker
           key={station.id}
@@ -209,13 +210,13 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
               <p><strong>Price:</strong> {station.price}</p>
               <p><strong>Connector:</strong> {station.connector.toUpperCase()}</p>
               {!station.isReachable && (
-                <p style={{color: 'red'}}><strong>⚠️ Out of Range</strong></p>
+                <p style={{ color: 'red' }}><strong>⚠️ Out of Range</strong></p>
               )}
               {station.availableSlots === 0 && (
-                <p style={{color: 'orange'}}><strong>🚫 Fully Booked</strong></p>
+                <p style={{ color: 'orange' }}><strong>🚫 Fully Booked</strong></p>
               )}
               {station.isReachable && station.availableSlots > 0 && (
-                <p style={{color: 'green'}}><strong>✅ Recommended</strong></p>
+                <p style={{ color: 'green' }}><strong>✅ Recommended</strong></p>
               )}
             </div>
           </Popup>

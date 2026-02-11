@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_CONFIG } from '../../constants/apiConstants';
 import { Container, Row, Col, Card, Button, Table, Badge, Modal, Form, Tabs, Tab } from 'react-bootstrap';
 import { FiEdit, FiEye, FiTrash2, FiMapPin, FiPlus, FiDollarSign, FiCalendar, FiUsers } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
@@ -21,12 +22,12 @@ const MyStations = () => {
 
   const fetchStations = async () => {
     try {
-      const response = await fetch('https://evcharger-springboot.onrender.com/api/station-master/stations', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/station-master/stations`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setStations(data || []);
@@ -42,16 +43,16 @@ const MyStations = () => {
     setLoadingDetails(true);
     try {
       // Fetch bookings for this specific station
-      const bookingsResponse = await fetch(`https://evcharger-springboot.onrender.com/api/station-master/stations/${stationId}/bookings`, {
+      const bookingsResponse = await fetch(`${API_CONFIG.BASE_URL}/station-master/stations/${stationId}/bookings`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      
+
       if (bookingsResponse.ok) {
         const bookingsData = await bookingsResponse.json();
         setStationBookings(bookingsData || []);
-        
+
         // Calculate revenue for this station only
         const totalRevenue = (bookingsData || []).reduce((sum, booking) => {
           return sum + (booking.amount || 0);
@@ -85,7 +86,7 @@ const MyStations = () => {
 
   const handleSaveChanges = async () => {
     try {
-      const response = await fetch(`https://evcharger-springboot.onrender.com/api/station-master/stations/${selectedStation.id}`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/station-master/stations/${selectedStation.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +127,7 @@ const MyStations = () => {
   const getApprovalBadge = (approvalStatus) => {
     const colors = {
       'Pending': 'warning',
-      'Approved': 'success', 
+      'Approved': 'success',
       'Rejected': 'danger'
     };
     return <Badge bg={colors[approvalStatus] || 'secondary'}>{approvalStatus}</Badge>;
@@ -268,10 +269,10 @@ const MyStations = () => {
                         value={formData.name || ''}
                         onChange={handleInputChange}
                         disabled={!isEditing}
-                        style={{ 
-                          backgroundColor: isEditing ? '#4a5568' : '#1a202c', 
-                          color: 'white', 
-                          border: '1px solid #4a5568' 
+                        style={{
+                          backgroundColor: isEditing ? '#4a5568' : '#1a202c',
+                          color: 'white',
+                          border: '1px solid #4a5568'
                         }}
                       />
                     </Form.Group>
@@ -284,10 +285,10 @@ const MyStations = () => {
                         value={formData.status || ''}
                         onChange={handleInputChange}
                         disabled={!isEditing}
-                        style={{ 
-                          backgroundColor: isEditing ? '#4a5568' : '#1a202c', 
-                          color: 'white', 
-                          border: '1px solid #4a5568' 
+                        style={{
+                          backgroundColor: isEditing ? '#4a5568' : '#1a202c',
+                          color: 'white',
+                          border: '1px solid #4a5568'
                         }}
                       >
                         <option value="Active">Active</option>
@@ -307,10 +308,10 @@ const MyStations = () => {
                     value={formData.address || ''}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    style={{ 
-                      backgroundColor: isEditing ? '#4a5568' : '#1a202c', 
-                      color: 'white', 
-                      border: '1px solid #4a5568' 
+                    style={{
+                      backgroundColor: isEditing ? '#4a5568' : '#1a202c',
+                      color: 'white',
+                      border: '1px solid #4a5568'
                     }}
                   />
                 </Form.Group>
@@ -326,10 +327,10 @@ const MyStations = () => {
                         value={formData.latitude || ''}
                         onChange={handleInputChange}
                         disabled={!isEditing}
-                        style={{ 
-                          backgroundColor: isEditing ? '#4a5568' : '#1a202c', 
-                          color: 'white', 
-                          border: '1px solid #4a5568' 
+                        style={{
+                          backgroundColor: isEditing ? '#4a5568' : '#1a202c',
+                          color: 'white',
+                          border: '1px solid #4a5568'
                         }}
                       />
                     </Form.Group>
@@ -344,10 +345,10 @@ const MyStations = () => {
                         value={formData.longitude || ''}
                         onChange={handleInputChange}
                         disabled={!isEditing}
-                        style={{ 
-                          backgroundColor: isEditing ? '#4a5568' : '#1a202c', 
-                          color: 'white', 
-                          border: '1px solid #4a5568' 
+                        style={{
+                          backgroundColor: isEditing ? '#4a5568' : '#1a202c',
+                          color: 'white',
+                          border: '1px solid #4a5568'
                         }}
                       />
                     </Form.Group>
@@ -364,10 +365,10 @@ const MyStations = () => {
                         value={formData.totalSlots || ''}
                         onChange={handleInputChange}
                         disabled={!isEditing}
-                        style={{ 
-                          backgroundColor: isEditing ? '#4a5568' : '#1a202c', 
-                          color: 'white', 
-                          border: '1px solid #4a5568' 
+                        style={{
+                          backgroundColor: isEditing ? '#4a5568' : '#1a202c',
+                          color: 'white',
+                          border: '1px solid #4a5568'
                         }}
                       />
                     </Form.Group>
@@ -382,10 +383,10 @@ const MyStations = () => {
                         value={formData.pricePerKwh || ''}
                         onChange={handleInputChange}
                         disabled={!isEditing}
-                        style={{ 
-                          backgroundColor: isEditing ? '#4a5568' : '#1a202c', 
-                          color: 'white', 
-                          border: '1px solid #4a5568' 
+                        style={{
+                          backgroundColor: isEditing ? '#4a5568' : '#1a202c',
+                          color: 'white',
+                          border: '1px solid #4a5568'
                         }}
                       />
                     </Form.Group>
@@ -400,10 +401,10 @@ const MyStations = () => {
                     value={formData.operatingHours || ''}
                     onChange={handleInputChange}
                     disabled={!isEditing}
-                    style={{ 
-                      backgroundColor: isEditing ? '#4a5568' : '#1a202c', 
-                      color: 'white', 
-                      border: '1px solid #4a5568' 
+                    style={{
+                      backgroundColor: isEditing ? '#4a5568' : '#1a202c',
+                      color: 'white',
+                      border: '1px solid #4a5568'
                     }}
                   />
                 </Form.Group>

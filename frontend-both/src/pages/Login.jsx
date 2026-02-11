@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_CONFIG, API_ENDPOINTS } from '../constants/apiConstants';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
@@ -50,7 +51,7 @@ const Login = () => {
       ...prev,
       [name]: value
     }));
-    
+
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -100,21 +101,21 @@ const Login = () => {
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const payload = JSON.parse(atob(credentialResponse.credential.split('.')[1]));
-      
-      const response = await fetch('https://evcharger-springboot.onrender.com/api/auth/google', {
+
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.GOOGLE}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           email: payload.email,
           name: payload.name
         })
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        
+
         toast.success('Login successful!');
         window.location.href = '/dashboard';
       } else {
@@ -130,32 +131,32 @@ const Login = () => {
 
   const validateRegistrationForm = () => {
     const errors = {};
-    
+
     const phoneRegex = /^[0-9]{10}$/;
     if (!carDetails.phone) {
       errors.phone = 'Phone number is required';
     } else if (!phoneRegex.test(carDetails.phone)) {
       errors.phone = 'Phone number must be 10 digits';
     }
-    
+
     const carNumberRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
     if (!carDetails.carNumber) {
       errors.carNumber = 'Car number is required';
     } else if (!carNumberRegex.test(carDetails.carNumber.toUpperCase())) {
       errors.carNumber = 'Invalid format. Use: MH12AB1234';
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
-    
+
     if (forgotPasswordStep === 1) {
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       setGeneratedOTP(otp);
-      
+
       try {
         await emailjs.send(
           'service_5ge65dl',
@@ -171,7 +172,7 @@ const Login = () => {
           },
           'qXmPfLLE2JuNBPuuV'
         );
-        
+
         toast.success('OTP sent to your email');
         setForgotPasswordStep(2);
       } catch (error) {
@@ -189,7 +190,7 @@ const Login = () => {
         toast.error('Passwords do not match');
         return;
       }
-      
+
       toast.success('Password updated successfully');
       setShowForgotPassword(false);
       setForgotPasswordStep(1);
@@ -199,11 +200,11 @@ const Login = () => {
 
   const handleCarDetailsSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateRegistrationForm()) {
       return;
     }
-    
+
     try {
       const requestData = {
         name: carDetails.name,
@@ -216,21 +217,21 @@ const Login = () => {
         vehicleModel: carDetails.vehicleModel,
         role: 'User'
       };
-      
-      const response = await fetch('https://evcharger-springboot.onrender.com/api/auth/register', {
+
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.AUTH.REGISTER}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestData)
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        
+
         toast.success('Registration successful!');
         setShowCarDetails(false);
-        
+
         window.location.href = '/dashboard';
       } else {
         const errorData = await response.json();
@@ -243,20 +244,20 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
-    
+
     try {
       const result = await login(formData.email, formData.password);
-      
+
       if (result.success) {
         toast.success('Login successful!');
         const userRole = localStorage.getItem('userRole');
-        
+
         if (userRole === 'Admin') {
           navigate('/admin/dashboard', { replace: true });
         } else if (userRole === 'StationMaster') {
@@ -282,7 +283,7 @@ const Login = () => {
         <div className="floating-icon icon-3">🚗</div>
         <div className="floating-icon icon-4">🌱</div>
       </div>
-      
+
       <Container>
         <Row className="justify-content-center align-items-center min-vh-100">
           <Col md={6} lg={4}>
@@ -290,7 +291,7 @@ const Login = () => {
               <h1 className="banner-title">EV Charger Finder</h1>
               <p className="banner-subtitle">Find, Book & Charge with Confidence</p>
             </div>
-            
+
             <Card className="auth-card">
               <Card.Body className="p-4">
                 <div className="text-center mb-4">
@@ -361,8 +362,8 @@ const Login = () => {
                     </div>
                   </Form.Group>
 
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="btn btn-primary w-100 mb-3"
                     disabled={loading}
                   >
@@ -377,9 +378,9 @@ const Login = () => {
                   </Button>
 
                   <div className="text-center mb-3">
-                    <button 
-                      type="button" 
-                      className="auth-link" 
+                    <button
+                      type="button"
+                      className="auth-link"
                       onClick={() => setShowForgotPassword(true)}
                       style={{ background: 'none', border: 'none', textDecoration: 'underline' }}
                     >
@@ -398,7 +399,7 @@ const Login = () => {
                 </div>
               </Card.Body>
             </Card>
-            
+
             {/* Registration Modal */}
             {showCarDetails && (
               <div className="modal-overlay" onClick={() => setShowCarDetails(false)}>
@@ -409,15 +410,15 @@ const Login = () => {
                         <h3 className="auth-title mb-1">Complete Registration</h3>
                         <p className="auth-subtitle mb-0">Fill in your details to continue</p>
                       </div>
-                      <button 
-                        className="btn-close" 
+                      <button
+                        className="btn-close"
                         onClick={() => setShowCarDetails(false)}
                         style={{ background: 'none', border: 'none', color: 'white', fontSize: '24px' }}
                       >
                         ×
                       </button>
                     </div>
-                    
+
                     <Form onSubmit={handleCarDetailsSubmit}>
                       <div className="row">
                         <div className="col-md-6">
@@ -443,7 +444,7 @@ const Login = () => {
                           </Form.Group>
                         </div>
                       </div>
-                      
+
                       <div className="row">
                         <div className="col-md-6">
                           <Form.Group className="mb-3">
@@ -453,8 +454,8 @@ const Login = () => {
                               value={carDetails.phone}
                               onChange={(e) => {
                                 const value = e.target.value.replace(/\D/g, '').slice(0, 10);
-                                setCarDetails({...carDetails, phone: value});
-                                if (formErrors.phone) setFormErrors({...formErrors, phone: ''});
+                                setCarDetails({ ...carDetails, phone: value });
+                                if (formErrors.phone) setFormErrors({ ...formErrors, phone: '' });
                               }}
                               className={`auth-input ${formErrors.phone ? 'is-invalid' : ''}`}
                             />
@@ -469,8 +470,8 @@ const Login = () => {
                               value={carDetails.carNumber}
                               onChange={(e) => {
                                 const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
-                                setCarDetails({...carDetails, carNumber: value});
-                                if (formErrors.carNumber) setFormErrors({...formErrors, carNumber: ''});
+                                setCarDetails({ ...carDetails, carNumber: value });
+                                if (formErrors.carNumber) setFormErrors({ ...formErrors, carNumber: '' });
                               }}
                               className={`auth-input ${formErrors.carNumber ? 'is-invalid' : ''}`}
                             />
@@ -478,7 +479,7 @@ const Login = () => {
                           </Form.Group>
                         </div>
                       </div>
-                      
+
                       <div className="row">
                         <div className="col-md-4">
                           <Form.Group className="mb-3">
@@ -486,7 +487,7 @@ const Login = () => {
                               value={carDetails.vehicleType}
                               onChange={(e) => {
                                 const newType = e.target.value;
-                                setCarDetails({...carDetails, vehicleType: newType, carBrand: '', vehicleModel: ''});
+                                setCarDetails({ ...carDetails, vehicleType: newType, carBrand: '', vehicleModel: '' });
                                 if (newType && sampleVehicleData[newType]) {
                                   setCarBrands(sampleVehicleData[newType]);
                                 } else {
@@ -508,7 +509,7 @@ const Login = () => {
                               value={carDetails.carBrand}
                               onChange={(e) => {
                                 const newBrand = e.target.value;
-                                setCarDetails({...carDetails, carBrand: newBrand, vehicleModel: ''});
+                                setCarDetails({ ...carDetails, carBrand: newBrand, vehicleModel: '' });
                                 if (newBrand) {
                                   const selectedBrand = carBrands.find(b => b.name === newBrand);
                                   if (selectedBrand && selectedBrand.models) {
@@ -532,7 +533,7 @@ const Login = () => {
                           <Form.Group className="mb-3">
                             <Form.Select
                               value={carDetails.vehicleModel}
-                              onChange={(e) => setCarDetails({...carDetails, vehicleModel: e.target.value})}
+                              onChange={(e) => setCarDetails({ ...carDetails, vehicleModel: e.target.value })}
                               className="auth-input"
                               disabled={!carDetails.carBrand || carModels.length === 0}
                             >
@@ -544,7 +545,7 @@ const Login = () => {
                           </Form.Group>
                         </div>
                       </div>
-                      
+
                       <Button type="submit" className="btn btn-primary w-100 mt-3">
                         Complete Registration
                       </Button>
@@ -553,7 +554,7 @@ const Login = () => {
                 </Card>
               </div>
             )}
-            
+
             {/* Forgot Password Modal */}
             {showForgotPassword && (
               <div className="modal-overlay" onClick={() => setShowForgotPassword(false)}>
@@ -561,15 +562,15 @@ const Login = () => {
                   <Card.Body className="p-4">
                     <div className="d-flex justify-content-between align-items-center mb-4">
                       <h3 className="auth-title mb-0">Reset Password</h3>
-                      <button 
-                        className="btn-close" 
+                      <button
+                        className="btn-close"
                         onClick={() => setShowForgotPassword(false)}
                         style={{ background: 'none', border: 'none', color: 'white', fontSize: '24px' }}
                       >
                         ×
                       </button>
                     </div>
-                    
+
                     <Form onSubmit={handleForgotPassword}>
                       {forgotPasswordStep === 1 && (
                         <>
@@ -578,7 +579,7 @@ const Login = () => {
                               type="email"
                               placeholder="Enter your email"
                               value={forgotPasswordData.email}
-                              onChange={(e) => setForgotPasswordData({...forgotPasswordData, email: e.target.value})}
+                              onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, email: e.target.value })}
                               className="auth-input"
                             />
                           </Form.Group>
@@ -587,7 +588,7 @@ const Login = () => {
                           </Button>
                         </>
                       )}
-                      
+
                       {forgotPasswordStep === 2 && (
                         <>
                           <Form.Group className="mb-3">
@@ -595,7 +596,7 @@ const Login = () => {
                               type="text"
                               placeholder="Enter 6-digit OTP"
                               value={forgotPasswordData.otp}
-                              onChange={(e) => setForgotPasswordData({...forgotPasswordData, otp: e.target.value})}
+                              onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, otp: e.target.value })}
                               className="auth-input"
                               maxLength={6}
                             />
@@ -605,7 +606,7 @@ const Login = () => {
                           </Button>
                         </>
                       )}
-                      
+
                       {forgotPasswordStep === 3 && (
                         <>
                           <Form.Group className="mb-3">
@@ -613,7 +614,7 @@ const Login = () => {
                               type="password"
                               placeholder="New Password"
                               value={forgotPasswordData.newPassword}
-                              onChange={(e) => setForgotPasswordData({...forgotPasswordData, newPassword: e.target.value})}
+                              onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, newPassword: e.target.value })}
                               className="auth-input"
                             />
                           </Form.Group>
@@ -622,7 +623,7 @@ const Login = () => {
                               type="password"
                               placeholder="Confirm New Password"
                               value={forgotPasswordData.confirmPassword}
-                              onChange={(e) => setForgotPasswordData({...forgotPasswordData, confirmPassword: e.target.value})}
+                              onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, confirmPassword: e.target.value })}
                               className="auth-input"
                             />
                           </Form.Group>
@@ -636,7 +637,7 @@ const Login = () => {
                 </Card>
               </div>
             )}
-            
+
             <div className="trust-indicators">
               <div className="trust-item">
                 <span className="trust-icon">🔒</span>

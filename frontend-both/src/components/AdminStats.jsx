@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API_CONFIG, API_ENDPOINTS } from '../constants/apiConstants'
 import { Row, Col, Card } from 'react-bootstrap'
 import { FaUsers, FaChargingStation, FaRupeeSign, FaCalendarAlt } from 'react-icons/fa'
 
@@ -17,13 +18,13 @@ const AdminStats = () => {
   const fetchStats = async () => {
     try {
       const [usersRes, stationsRes, bookingsRes] = await Promise.all([
-        fetch('https://evcharger-springboot.onrender.com/api/users', {
+        fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.USERS.BASE}`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         }),
-        fetch('https://evcharger-springboot.onrender.com/api/stations', {
+        fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.STATIONS.BASE}`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         }),
-        fetch('https://evcharger-springboot.onrender.com/api/bookings', {
+        fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.BOOKINGS.BASE}`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         })
       ])

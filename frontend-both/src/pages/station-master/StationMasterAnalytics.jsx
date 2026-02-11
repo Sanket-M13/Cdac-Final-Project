@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_CONFIG } from '../../constants/apiConstants';
 import { Container, Row, Col, Card, Table, Badge, ProgressBar } from 'react-bootstrap';
 import { FiMapPin, FiUsers, FiDollarSign, FiTrendingUp, FiActivity, FiClock } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
@@ -25,47 +26,48 @@ const StationMasterAnalytics = () => {
   const fetchAnalytics = async () => {
     try {
       const token = localStorage.getItem('token');
-      
+
       // Fetch stations
-      const stationsResponse = await fetch('https://evcharger-springboot.onrender.com/api/station-master/stations', {
+      // Fetch stations
+      const stationsResponse = await fetch(`${API_CONFIG.BASE_URL}/station-master/stations`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
+
       if (stationsResponse.ok) {
         const stations = await stationsResponse.json();
-        
+
         let totalBookings = 0;
         let totalRevenue = 0;
         let monthlyBookings = 0;
         let monthlyRevenue = 0;
         const stationDetails = [];
         const allBookings = [];
-        
+
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
-        
+
         for (const station of stations) {
-          const bookingsResponse = await fetch(`https://evcharger-springboot.onrender.com/api/station-master/stations/${station.id}/bookings`, {
+          const bookingsResponse = await fetch(`${API_CONFIG.BASE_URL}/station-master/stations/${station.id}/bookings`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
-          
+
           let stationBookings = 0;
           let stationRevenue = 0;
           let stationMonthlyBookings = 0;
           let stationMonthlyRevenue = 0;
-          
+
           if (bookingsResponse.ok) {
             const bookings = await bookingsResponse.json();
-            
+
             bookings.forEach(booking => {
               const bookingDate = new Date(booking.date);
               const amount = parseFloat(booking.amount) || 0;
-              
+
               stationBookings++;
               stationRevenue += amount;
               totalBookings++;
               totalRevenue += amount;
-              
+
               if (bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear) {
                 stationMonthlyBookings++;
                 stationMonthlyRevenue += amount;
@@ -73,13 +75,13 @@ const StationMasterAnalytics = () => {
                 monthlyRevenue += amount;
               }
             });
-            
+
             allBookings.push(...bookings.slice(0, 10).map(b => ({
               ...b,
               stationName: station.name
             })));
           }
-          
+
           stationDetails.push({
             ...station,
             bookings: stationBookings,
@@ -88,10 +90,10 @@ const StationMasterAnalytics = () => {
             monthlyRevenue: stationMonthlyRevenue
           });
         }
-        
+
         const activeStations = stations.filter(s => s.status === 'Active').length;
         const maintenanceStations = stations.filter(s => s.status === 'Maintenance').length;
-        
+
         setAnalytics({
           totalStations: stations.length,
           activeStations,
@@ -144,7 +146,7 @@ const StationMasterAnalytics = () => {
             </Card.Body>
           </Card>
         </Col>
-        
+
         <Col md={6} lg={3} className="mb-3">
           <Card className="h-100">
             <Card.Body className="text-center">
@@ -155,7 +157,7 @@ const StationMasterAnalytics = () => {
             </Card.Body>
           </Card>
         </Col>
-        
+
         <Col md={6} lg={3} className="mb-3">
           <Card className="h-100">
             <Card.Body className="text-center">
@@ -166,7 +168,7 @@ const StationMasterAnalytics = () => {
             </Card.Body>
           </Card>
         </Col>
-        
+
         <Col md={6} lg={3} className="mb-3">
           <Card className="h-100">
             <Card.Body className="text-center">
@@ -203,7 +205,7 @@ const StationMasterAnalytics = () => {
                   {analytics.stationDetails.map((station) => (
                     <tr key={station.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                       <td style={{ color: 'var(--fg)', background: 'transparent', padding: '12px' }}>
-                        <strong>{station.name}</strong><br/>
+                        <strong>{station.name}</strong><br />
                         <small style={{ color: 'var(--muted)' }}>{station.location}</small>
                       </td>
                       <td style={{ background: 'transparent', padding: '12px' }}>
@@ -216,10 +218,10 @@ const StationMasterAnalytics = () => {
                       <td style={{ color: 'var(--fg)', background: 'transparent', padding: '12px' }}>₹{station.revenue.toLocaleString()}</td>
                       <td style={{ color: 'var(--fg)', background: 'transparent', padding: '12px' }}>₹{station.monthlyRevenue.toLocaleString()}</td>
                       <td style={{ background: 'transparent', padding: '12px' }}>
-                        <ProgressBar 
-                          now={Math.min((station.monthlyBookings / 30) * 100, 100)} 
+                        <ProgressBar
+                          now={Math.min((station.monthlyBookings / 30) * 100, 100)}
                           variant={station.monthlyBookings > 15 ? 'success' : station.monthlyBookings > 5 ? 'warning' : 'danger'}
-                          style={{width: '100px'}}
+                          style={{ width: '100px' }}
                         />
                       </td>
                     </tr>
@@ -259,8 +261,8 @@ const StationMasterAnalytics = () => {
                       <td style={{ color: 'var(--fg)', background: 'transparent', padding: '12px' }}>{booking.timeSlot}</td>
                       <td style={{ background: 'transparent', padding: '12px' }}>
                         <Badge bg={
-                          booking.status === 'Confirmed' ? 'success' : 
-                          booking.status === 'Cancelled' ? 'danger' : 'warning'
+                          booking.status === 'Confirmed' ? 'success' :
+                            booking.status === 'Cancelled' ? 'danger' : 'warning'
                         }>
                           {booking.status}
                         </Badge>

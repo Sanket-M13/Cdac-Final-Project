@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { API_CONFIG, API_ENDPOINTS } from '../constants/apiConstants';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { Button, Card, Badge, Modal, Form, Row, Col } from 'react-bootstrap';
 import L from 'leaflet';
@@ -32,7 +33,7 @@ const carIcon = new L.Icon({
 // Charging station icon with different colors for status
 const chargingIcon = (isReachableAndAvailable = true, isReachable = true, isAvailable = true) => {
   let color = '#dc3545'; // Red for unreachable/unavailable
-  
+
   if (isReachableAndAvailable) {
     color = '#28a745'; // Green for reachable and available (recommended)
   } else if (isReachable && !isAvailable) {
@@ -40,7 +41,7 @@ const chargingIcon = (isReachableAndAvailable = true, isReachable = true, isAvai
   } else if (!isReachable) {
     color = '#6c757d'; // Gray for out of range
   }
-  
+
   return new L.Icon({
     iconUrl: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
       <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
@@ -79,7 +80,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
     const selected = new Date(selectedDate);
     today.setHours(0, 0, 0, 0);
     selected.setHours(0, 0, 0, 0);
-    
+
     if (selected < today) {
       setDateError('Cannot select past dates. Please choose today or a future date.');
       return false;
@@ -96,8 +97,8 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLng = (lng2 - lng1) * Math.PI / 180;
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return Math.round(R * c);
   };
@@ -137,19 +138,19 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
     const now = new Date();
     const selectedDate = new Date(bookingData.date);
     const today = new Date();
-    
+
     // Check if selected date is today
     const isToday = selectedDate.toDateString() === today.toDateString();
-    
+
     let startHour, startMinute;
-    
+
     if (isToday) {
       // For today, start from next 10-minute slot
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
       const nextSlotMinutes = Math.ceil((currentMinutes + 10) / 10) * 10;
       startHour = Math.floor(nextSlotMinutes / 60);
       startMinute = nextSlotMinutes % 60;
-      
+
       // If past 22:00, no slots available
       if (startHour >= 22) {
         return [];
@@ -159,14 +160,14 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
       startHour = 6;
       startMinute = 0;
     }
-    
+
     // Generate 10-minute slots from start time to 22:00
     for (let hour = startHour; hour < 22; hour++) {
       const startMin = (hour === startHour) ? startMinute : 0;
-      
+
       for (let minute = startMin; minute < 60; minute += 10) {
         const timeSlot = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        
+
         // Check if this slot is already booked
         const isBooked = checkIfSlotBooked(selectedStation.id, bookingData.date, timeSlot);
         if (!isBooked) {
@@ -174,19 +175,19 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
         }
       }
     }
-    
+
     return slots;
   };
 
   const checkIfSlotBooked = async (stationId, date, timeSlot) => {
     try {
       // Check with backend API for accurate slot availability
-      const response = await fetch(`https://evcharger-springboot.onrender.com/api/bookings/slots/${stationId}?date=${date}`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.BOOKINGS.BASE}/slots/${stationId}?date=${date}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      
+
       if (response.ok) {
         const slots = await response.json();
         const requestedSlot = slots.find(slot => {
@@ -194,14 +195,14 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
           const requestedHour = timeSlot.split(':')[0];
           return slotHour === requestedHour;
         });
-        
+
         // Return true if slot is fully booked (no available slots)
         return requestedSlot ? !requestedSlot.isAvailable : false;
       }
     } catch (error) {
       console.error('Error checking slot availability:', error);
     }
-    
+
     // Fallback to local check if API fails
     return false;
   };
@@ -213,15 +214,15 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       selectedDate.setHours(0, 0, 0, 0);
-      
+
       if (selectedDate < today) {
         alert('Cannot book for past dates. Please select today or a future date.');
         return;
       }
-      
+
       const savedVehicleData = JSON.parse(localStorage.getItem('savedVehicleData') || '{}');
       const amount = parseFloat(selectedStation.price.replace('₹', '').replace('/kWh', '')) * 10;
-      
+
       // Initialize Razorpay payment
       const options = {
         key: 'rzp_test_Rx7lCx7a7G7UsV',
@@ -249,25 +250,25 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
           color: '#ad21ff'
         },
         modal: {
-          ondismiss: function() {
+          ondismiss: function () {
             console.log('Payment cancelled');
           }
         }
       };
-      
+
       const rzp = new window.Razorpay(options);
       rzp.open();
-      
+
     } catch (error) {
       console.error('Payment initialization error:', error);
       alert('Failed to initialize payment. Please try again.');
     }
   };
-  
+
   const createBooking = async (paymentId, amount) => {
     try {
       const savedVehicleData = JSON.parse(localStorage.getItem('savedVehicleData') || '{}');
-      
+
       const booking = {
         stationId: selectedStation.id,
         date: bookingData.date,
@@ -284,10 +285,10 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
         startTime: new Date().toISOString(),
         endTime: new Date(Date.now() + bookingData.duration * 60 * 60 * 1000).toISOString()
       };
-      
+
       console.log('Creating booking with payment ID:', paymentId);
-      
-      const response = await fetch('https://evcharger-springboot.onrender.com/api/bookings', {
+
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.BOOKINGS.BASE}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -295,11 +296,11 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
         },
         body: JSON.stringify(booking)
       });
-      
+
       if (response.ok) {
         const result = await response.json();
         console.log('Booking created successfully:', result);
-        
+
         // Store booking locally to prevent double booking
         const existingBookings = JSON.parse(localStorage.getItem('stationBookings') || '[]');
         existingBookings.push({
@@ -309,7 +310,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
           duration: bookingData.duration
         });
         localStorage.setItem('stationBookings', JSON.stringify(existingBookings));
-        
+
         setShowBookingModal(false);
         alert('Payment successful! Booking confirmed and saved to database.');
       } else {
@@ -348,18 +349,18 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
     const fetchStations = async () => {
       try {
         const data = await stationService.getAllStations();
-        
+
         if (data.stations) {
           // Convert API data to map format
           const apiStations = data.stations.map(station => {
             const distance = userLocation ? calculateDistance(
-              userLocation.lat, userLocation.lng, 
+              userLocation.lat, userLocation.lng,
               station.latitude, station.longitude
             ) : 0;
-            
+
             const isReachable = userRange > 0 ? distance <= userRange : true;
             const isAvailable = station.availableSlots > 0 && station.status === 'Active';
-            
+
             return {
               id: station.id,
               name: station.name,
@@ -380,10 +381,10 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
               priority: isReachable && isAvailable ? 1 : isReachable ? 2 : 3
             };
           });
-          
+
           // Filter stations based on filters
           let filteredStations = apiStations;
-          
+
           if (filters.status !== 'all') {
             filteredStations = filteredStations.filter(station => {
               if (filters.status === 'available') return station.availableSlots > 0;
@@ -392,7 +393,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
               return true;
             });
           }
-          
+
           if (filters.chargerType !== 'all') {
             filteredStations = filteredStations.filter(station => {
               const powerOutput = station.powerOutput || '';
@@ -411,7 +412,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
             }
             return a.distance - b.distance;
           });
-          
+
           setStations(filteredStations);
         }
       } catch (error) {
@@ -454,7 +455,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          
+
           {/* User Location Marker */}
           <Marker
             position={[userLocation.lat, userLocation.lng]}
@@ -467,7 +468,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
               </div>
             </Popup>
           </Marker>
-          
+
           {/* Charging Station Markers */}
           {stations.map(station => (
             <Marker
@@ -488,32 +489,32 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
                   <p><strong>Price:</strong> {station.price || 'N/A'}</p>
                   <p><strong>Connector:</strong> {station.connector.toUpperCase()}</p>
                   {!station.isReachable && (
-                    <p style={{color: 'red'}}><strong>⚠️ Out of Range</strong></p>
+                    <p style={{ color: 'red' }}><strong>⚠️ Out of Range</strong></p>
                   )}
                   {station.status !== 'Available' && (
-                    <p style={{color: 'red'}}><strong>🚫 {station.status}</strong></p>
+                    <p style={{ color: 'red' }}><strong>🚫 {station.status}</strong></p>
                   )}
                   {station.status === 'Available' && station.availableSlots === 0 && (
-                    <p style={{color: 'orange'}}><strong>🚫 Fully Booked Today</strong></p>
+                    <p style={{ color: 'orange' }}><strong>🚫 Fully Booked Today</strong></p>
                   )}
                   {station.isReachable && vehicleData?.model && station.status === 'Available' && station.availableSlots > 0 && (
                     <>
-                      <p style={{color: 'green'}}><strong>✅ Available Now</strong></p>
+                      <p style={{ color: 'green' }}><strong>✅ Available Now</strong></p>
                       <Button size="sm" onClick={() => handleBookStation(station)}>Book Slot</Button>
-                      <small className="d-block mt-1" style={{color: 'white !important'}}>Book for today or future dates</small>
+                      <small className="d-block mt-1" style={{ color: 'white !important' }}>Book for today or future dates</small>
                     </>
                   )}
                   {station.isReachable && !vehicleData?.model && station.status === 'Available' && (
-                    <p style={{color: 'orange'}}><strong>⚠️ Select vehicle to book</strong></p>
+                    <p style={{ color: 'orange' }}><strong>⚠️ Select vehicle to book</strong></p>
                   )}
                 </div>
               </Popup>
             </Marker>
           ))}
         </MapContainer>
-        
+
         {/* Current Location Button */}
-        <Button 
+        <Button
           className="current-location-btn"
           onClick={goToCurrentLocation}
           style={{
@@ -553,16 +554,16 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
                       )}
                     </Card.Title>
                     <Card.Text>
-                      <small className="text-muted">{station.address}</small><br/>
-                      <strong>Status:</strong> {station.status}<br/>
-                      <strong>Available:</strong> {station.availableSlots}/{station.totalSlots} slots<br/>
-                      <strong>Distance:</strong> {station.distance} km<br/>
+                      <small className="text-muted">{station.address}</small><br />
+                      <strong>Status:</strong> {station.status}<br />
+                      <strong>Available:</strong> {station.availableSlots}/{station.totalSlots} slots<br />
+                      <strong>Distance:</strong> {station.distance} km<br />
                       <strong>Price:</strong> {station.price || 'N/A'}
                     </Card.Text>
                     {station.status === 'Available' ? (
-                      <Button 
-                        variant="primary" 
-                        size="sm" 
+                      <Button
+                        variant="primary"
+                        size="sm"
                         onClick={() => handleBookStation(station)}
                         disabled={!vehicleData?.model}
                       >
@@ -574,7 +575,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
                       </Button>
                     )}
                     {vehicleData?.model && (
-                      <small className="d-block mt-1" style={{color: 'white !important'}}>Book for today or future dates</small>
+                      <small className="d-block mt-1" style={{ color: 'white !important' }}>Book for today or future dates</small>
                     )}
                   </Card.Body>
                 </Card>
@@ -594,7 +595,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
             <>
               <h6 style={{ color: 'white' }}>{selectedStation.name}</h6>
               <p style={{ color: 'var(--muted)' }}>{selectedStation.address}</p>
-              
+
               <Form>
                 <Form.Group className="mb-3">
                   <Form.Label style={{ color: 'white' }}>Date</Form.Label>
@@ -606,7 +607,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
                     onChange={(e) => {
                       const isValid = validateDate(e.target.value);
                       if (isValid) {
-                        setBookingData({...bookingData, date: e.target.value, timeSlot: ''});
+                        setBookingData({ ...bookingData, date: e.target.value, timeSlot: '' });
                       }
                     }}
                     className={dateError ? 'is-invalid' : ''}
@@ -618,7 +619,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
                     </div>
                   )}
                 </Form.Group>
-                
+
                 <Form.Group className="mb-3">
                   <Form.Label style={{ color: 'white' }}>Time Slot</Form.Label>
                   <Form.Control
@@ -626,19 +627,19 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
                     value={bookingData.timeSlot}
                     onChange={async (e) => {
                       const selectedTime = e.target.value;
-                      
+
                       // Check if manually entered time conflicts with existing bookings
                       const isBooked = await checkIfSlotBooked(selectedStation.id, bookingData.date, selectedTime);
                       if (isBooked) {
                         alert(`This time slot is fully booked. Please select another time.`);
                         return;
                       }
-                      
-                      setBookingData({...bookingData, timeSlot: selectedTime});
+
+                      setBookingData({ ...bookingData, timeSlot: selectedTime });
                     }}
                     step="600"
-                    min={bookingData.date === getTodayDate() ? 
-                      `${Math.max(new Date().getHours() + 1, 6).toString().padStart(2, '0')}:00` : 
+                    min={bookingData.date === getTodayDate() ?
+                      `${Math.max(new Date().getHours() + 1, 6).toString().padStart(2, '0')}:00` :
                       "06:00"
                     }
                     max="23:59"
@@ -647,20 +648,20 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
                   />
                   <small style={{ color: 'var(--muted)' }}>Click to open time picker (10-min intervals)</small>
                 </Form.Group>
-                
+
                 <Form.Group className="mb-3">
                   <Form.Label style={{ color: 'white' }}>Duration (hours)</Form.Label>
                   <Form.Select
                     value={bookingData.duration}
                     onChange={async (e) => {
                       const newDuration = parseInt(e.target.value);
-                      setBookingData({...bookingData, duration: newDuration});
-                      
+                      setBookingData({ ...bookingData, duration: newDuration });
+
                       // Recheck if current time slot is still valid with new duration
                       if (bookingData.timeSlot) {
                         const isBooked = await checkIfSlotBooked(selectedStation.id, bookingData.date, bookingData.timeSlot);
                         if (isBooked) {
-                          setBookingData(prev => ({...prev, timeSlot: '', duration: newDuration}));
+                          setBookingData(prev => ({ ...prev, timeSlot: '', duration: newDuration }));
                           alert('Duration change makes this slot fully booked. Please select a new time slot.');
                         }
                       }
@@ -675,7 +676,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
                     <option value={6} style={{ backgroundColor: '#2a2a2a', color: 'white' }}>6 hours</option>
                   </Form.Select>
                 </Form.Group>
-                
+
                 <div className="text-center">
                   <strong style={{ color: 'white' }}>Total Amount: ₹{selectedStation && selectedStation.price ? (parseFloat(selectedStation.price.replace('₹', '').replace('/kWh', '')) * 10).toFixed(2) : '0.00'}</strong>
                 </div>
@@ -687,8 +688,8 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
           <Button variant="primary" onClick={() => setShowBookingModal(false)}>
             Cancel
           </Button>
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             onClick={handleBookingSubmit}
             disabled={!bookingData.timeSlot}
           >

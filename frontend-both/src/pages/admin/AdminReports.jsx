@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_CONFIG, API_ENDPOINTS } from '../../constants/apiConstants';
 import { Container, Row, Col, Card, Table, Badge } from 'react-bootstrap';
 import { FiUsers, FiMapPin, FiCalendar, FiDollarSign } from 'react-icons/fi';
 import toast from 'react-hot-toast';
@@ -21,13 +22,13 @@ const AdminReports = () => {
   const fetchData = async () => {
     try {
       const [usersRes, stationsRes, bookingsRes] = await Promise.all([
-        fetch('https://evcharger-springboot.onrender.com/api/admin/users', {
+        fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ADMIN.USERS}`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         }),
-        fetch('https://evcharger-springboot.onrender.com/api/admin/stations', {
+        fetch(`${API_CONFIG.BASE_URL}/admin/stations`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         }),
-        fetch('https://evcharger-springboot.onrender.com/api/admin/bookings', {
+        fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ADMIN.BOOKINGS}`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         })
       ]);
@@ -36,7 +37,7 @@ const AdminReports = () => {
       const stationsData = await stationsRes.json();
       const bookingsData = await bookingsRes.json();
 
-      
+
       const allUsers = Array.isArray(usersData) ? usersData : (usersData.users || []);
       const allStations = Array.isArray(stationsData) ? stationsData : (stationsData.stations || []);
       const allBookings = Array.isArray(bookingsData) ? bookingsData : (bookingsData.bookings || []);
@@ -77,7 +78,7 @@ const AdminReports = () => {
               </Card.Body>
             </Card>
           </Col>
-          
+
           <Col md={6} lg={3} className="mb-4">
             <Card style={{ background: 'var(--card-bg)', border: '1px solid rgba(255,255,255,0.1)' }}>
               <Card.Body className="text-center">
@@ -87,7 +88,7 @@ const AdminReports = () => {
               </Card.Body>
             </Card>
           </Col>
-          
+
           <Col md={6} lg={3} className="mb-4">
             <Card style={{ background: 'var(--card-bg)', border: '1px solid rgba(255,255,255,0.1)' }}>
               <Card.Body className="text-center">
@@ -97,7 +98,7 @@ const AdminReports = () => {
               </Card.Body>
             </Card>
           </Col>
-          
+
           <Col md={6} lg={3} className="mb-4">
             <Card style={{ background: 'var(--card-bg)', border: '1px solid rgba(255,255,255,0.1)' }}>
               <Card.Body className="text-center">

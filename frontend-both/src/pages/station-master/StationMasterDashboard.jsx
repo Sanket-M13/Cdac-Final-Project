@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_CONFIG } from '../../constants/apiConstants';
 import { Container, Row, Col, Card, Button, Table, Badge } from 'react-bootstrap';
 import { FiSettings, FiMapPin, FiUsers, FiBarChart, FiPlus } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
@@ -17,25 +18,26 @@ const StationMasterDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       // Fetch stations owned by this station master
-      const stationsResponse = await fetch('https://evcharger-springboot.onrender.com/api/station-master/stations', {
+      // Fetch stations owned by this station master
+      const stationsResponse = await fetch(`${API_CONFIG.BASE_URL}/station-master/stations`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      
+
       if (stationsResponse.ok) {
         const stationsData = await stationsResponse.json();
         setStations(stationsData);
-        
+
         // Fetch recent bookings for all stations
         const allBookings = [];
         for (const station of stationsData) {
-          const bookingsResponse = await fetch(`https://evcharger-springboot.onrender.com/api/station-master/stations/${station.id}/bookings`, {
+          const bookingsResponse = await fetch(`${API_CONFIG.BASE_URL}/station-master/stations/${station.id}/bookings`, {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           });
-          
+
           if (bookingsResponse.ok) {
             const bookings = await bookingsResponse.json();
             // Get upcoming bookings
@@ -44,10 +46,10 @@ const StationMasterDashboard = () => {
               const now = new Date();
               return bookingDate > now && booking.status === 'Confirmed';
             });
-            allBookings.push(...upcoming.map(b => ({...b, stationName: station.name})));
+            allBookings.push(...upcoming.map(b => ({ ...b, stationName: station.name })));
           }
         }
-        
+
         // Sort by booking time and take first 5
         allBookings.sort((a, b) => {
           const dateA = new Date(a.date + 'T' + a.timeSlot);
@@ -161,7 +163,7 @@ const StationMasterDashboard = () => {
                         <td>{booking.userName || 'N/A'}</td>
                         <td>{booking.stationName}</td>
                         <td>
-                          {new Date(booking.date).toLocaleDateString()}<br/>
+                          {new Date(booking.date).toLocaleDateString()}<br />
                           <small className="text-muted">
                             {booking.timeSlot}
                           </small>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_CONFIG, API_ENDPOINTS } from '../../constants/apiConstants';
 import { Container, Row, Col, Card, Table, Badge } from 'react-bootstrap';
 import { FiStar } from 'react-icons/fi';
 import toast from 'react-hot-toast';
@@ -12,7 +13,7 @@ const AdminContacts = () => {
 
   const fetchReviews = async () => {
     try {
-      const response = await fetch('https://evcharger-springboot.onrender.com/api/reviews', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.REVIEWS.BASE}`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const data = await response.json();

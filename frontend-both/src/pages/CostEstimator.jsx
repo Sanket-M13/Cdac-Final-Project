@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_CONFIG } from '../constants/apiConstants';
 import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
 import { FiZap, FiClock, FiDollarSign } from 'react-icons/fi';
 import axios from 'axios';
@@ -21,7 +22,7 @@ const CostEstimator = () => {
 
   const fetchStations = async () => {
     try {
-      const response = await axios.get('https://evcharger-springboot.onrender.com/api/stations/nearby?latitude=40.7128&longitude=-74.0060&radiusKm=50');
+      const response = await axios.get(`${API_CONFIG.BASE_URL}/stations/nearby?latitude=40.7128&longitude=-74.0060&radiusKm=50`);
       setStations(response.data);
     } catch (error) {
       toast.error('Failed to load stations');
@@ -38,7 +39,7 @@ const CostEstimator = () => {
 
   const handleEstimate = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.chargingStationId || !formData.startTime || !formData.endTime) {
       toast.error('Please fill in all fields');
       return;
@@ -55,7 +56,7 @@ const CostEstimator = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('https://evcharger-springboot.onrender.com/api/reservations/estimate-cost', {
+      const response = await axios.post(`${API_CONFIG.BASE_URL}/reservations/estimate-cost`, {
         chargingStationId: parseInt(formData.chargingStationId),
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString()
@@ -155,8 +156,8 @@ const CostEstimator = () => {
                   </Row>
 
                   <div className="text-center">
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       className="btn-primary"
                       disabled={loading}
                       size="lg"
@@ -231,8 +232,8 @@ const CostEstimator = () => {
                   </div>
 
                   <div className="text-center mt-3">
-                    <Button 
-                      href="/map" 
+                    <Button
+                      href="/map"
                       className="btn-primary"
                       size="lg"
                     >

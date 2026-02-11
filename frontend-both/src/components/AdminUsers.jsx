@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { API_CONFIG, API_ENDPOINTS } from '../constants/apiConstants'
 import { Table, Badge, Button } from 'react-bootstrap'
 
 const AdminUsers = () => {
@@ -10,7 +11,7 @@ const AdminUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('https://evcharger-springboot.onrender.com/api/users', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.USERS.BASE}`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       })
       const data = await response.json()

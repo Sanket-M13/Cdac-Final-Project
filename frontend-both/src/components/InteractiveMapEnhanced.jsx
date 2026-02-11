@@ -1,1 +1,433 @@
-import React, { useState, useEffect, useRef } from 'react';\nimport { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';\nimport { Button, Card, Badge, Modal, Form, Row, Col } from 'react-bootstrap';\nimport L from 'leaflet';\nimport 'leaflet/dist/leaflet.css';\nimport './InteractiveMap.css';\n\n// Fix for default markers in react-leaflet\ndelete L.Icon.Default.prototype._getIconUrl;\nL.Icon.Default.mergeOptions({\n  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',\n  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',\n  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',\n});\n\n// Car icon for user location\nconst carIcon = new L.Icon({\n  iconUrl: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`\n    <svg width=\"32\" height=\"32\" viewBox=\"0 0 32 32\" xmlns=\"http://www.w3.org/2000/svg\">\n      <circle cx=\"16\" cy=\"16\" r=\"15\" fill=\"#007bff\" stroke=\"white\" stroke-width=\"2\"/>\n      <text x=\"16\" y=\"20\" text-anchor=\"middle\" font-size=\"16\" fill=\"white\">🚗</text>\n    </svg>\n  `),\n  iconSize: [32, 32],\n  iconAnchor: [16, 16],\n  popupAnchor: [0, -16]\n});\n\n// Charging station icon with different colors for status\nconst chargingIcon = (isReachableAndAvailable = true, isReachable = true, isAvailable = true) => {\n  let color = '#dc3545'; // Red for unreachable/unavailable\n  \n  if (isReachableAndAvailable) {\n    color = '#28a745'; // Green for reachable and available (recommended)\n  } else if (isReachable && !isAvailable) {\n    color = '#ffc107'; // Yellow for reachable but booked\n  } else if (!isReachable) {\n    color = '#6c757d'; // Gray for out of range\n  }\n  \n  return new L.Icon({\n    iconUrl: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`\n      <svg width=\"28\" height=\"28\" viewBox=\"0 0 28 28\" xmlns=\"http://www.w3.org/2000/svg\">\n        <circle cx=\"14\" cy=\"14\" r=\"13\" fill=\"${color}\" stroke=\"white\" stroke-width=\"2\"/>\n        <text x=\"14\" y=\"18\" text-anchor=\"middle\" font-size=\"16\" fill=\"white\">⚡</text>\n      </svg>\n    `),\n    iconSize: [28, 28],\n    iconAnchor: [14, 14],\n    popupAnchor: [0, -14]\n  });\n};\n\nconst InteractiveMap = ({ filters, userRange, vehicleData }) => {\n  const [stations, setStations] = useState([]);\n  const [userLocation, setUserLocation] = useState({ lat: 19.0760, lng: 72.8777 });\n  const [loading, setLoading] = useState(true);\n  const [showBookingModal, setShowBookingModal] = useState(false);\n  const [selectedStation, setSelectedStation] = useState(null);\n  const [bookingData, setBookingData] = useState({\n    date: new Date().toISOString().split('T')[0],\n    timeSlot: '',\n    duration: 1\n  });\n  const mapRef = useRef();\n\n  // Calculate distance between two points\n  const calculateDistance = (lat1, lng1, lat2, lng2) => {\n    const R = 6371; // Earth's radius in kilometers\n    const dLat = (lat2 - lat1) * Math.PI / 180;\n    const dLng = (lng2 - lng1) * Math.PI / 180;\n    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +\n              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *\n              Math.sin(dLng / 2) * Math.sin(dLng / 2);\n    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));\n    return Math.round(R * c);\n  };\n\n  const goToCurrentLocation = () => {\n    if (navigator.geolocation) {\n      navigator.geolocation.getCurrentPosition(\n        (position) => {\n          const newLocation = {\n            lat: position.coords.latitude,\n            lng: position.coords.longitude\n          };\n          setUserLocation(newLocation);\n          if (mapRef.current) {\n            mapRef.current.setView([newLocation.lat, newLocation.lng], 15);\n          }\n        },\n        (error) => {\n          alert('Unable to get your location');\n        }\n      );\n    }\n  };\n\n  const handleBookStation = (station) => {\n    setSelectedStation(station);\n    setShowBookingModal(true);\n  };\n\n  const generateTimeSlots = () => {\n    const slots = [];\n    const now = new Date();\n    const currentHour = now.getHours();\n    const isToday = bookingData.date === new Date().toISOString().split('T')[0];\n    \n    for (let hour = isToday ? Math.max(currentHour + 1, 6) : 6; hour <= 22; hour++) {\n      slots.push(`${hour.toString().padStart(2, '0')}:00`);\n    }\n    return slots;\n  };\n\n  const handleBookingSubmit = () => {\n    const booking = {\n      id: Date.now(),\n      stationId: selectedStation.id,\n      stationName: selectedStation.name,\n      date: bookingData.date,\n      timeSlot: bookingData.timeSlot,\n      duration: bookingData.duration,\n      vehicleData: JSON.parse(localStorage.getItem('savedVehicleData') || '{}'),\n      amount: parseFloat(selectedStation.price.replace('₹', '').replace('/kWh', '')) * 10,\n      status: 'Confirmed',\n      bookedAt: new Date().toISOString()\n    };\n    \n    const existingBookings = JSON.parse(localStorage.getItem('userBookings') || '[]');\n    existingBookings.push(booking);\n    localStorage.setItem('userBookings', JSON.stringify(existingBookings));\n    \n    setShowBookingModal(false);\n    alert('Booking confirmed! Check My Bookings page for details.');\n  };\n\n  useEffect(() => {\n    // Get user location\n    if (navigator.geolocation) {\n      navigator.geolocation.getCurrentPosition(\n        (position) => {\n          setUserLocation({\n            lat: position.coords.latitude,\n            lng: position.coords.longitude\n          });\n          setLoading(false);\n        },\n        () => {\n          setLoading(false);\n        }\n      );\n    } else {\n      setLoading(false);\n    }\n  }, []);\n\n  useEffect(() => {\n    // Fetch stations from API\n    const fetchStations = async () => {\n      try {\n        const response = await fetch('https://evcharger-springboot.onrender.com/api/stations');\n        const data = await response.json();\n        \n        if (data.stations) {\n          // Convert API data to map format\n          const apiStations = data.stations.map(station => {\n            const distance = userLocation ? calculateDistance(\n              userLocation.lat, userLocation.lng, \n              station.latitude, station.longitude\n            ) : 0;\n            \n            const isReachable = userRange > 0 ? distance <= userRange : true;\n            const isAvailable = station.availableSlots > 0;\n            \n            return {\n              id: station.id,\n              name: station.name,\n              lat: station.latitude,\n              lng: station.longitude,\n              availability: isAvailable ? 'available' : 'busy',\n              connector: station.connectorTypes?.[0]?.toLowerCase() || 'ccs',\n              price: `₹${station.pricePerKwh}/kWh`,\n              availableSlots: station.availableSlots,\n              totalSlots: station.totalSlots,\n              distance: distance,\n              address: station.address,\n              powerOutput: station.powerOutput,\n              operatingHours: station.operatingHours,\n              amenities: station.amenities || [],\n              isReachable: isReachable,\n              status: station.status,\n              priority: isReachable && isAvailable ? 1 : isReachable ? 2 : 3\n            };\n          });\n          \n          // Filter stations based on filters\n          let filteredStations = apiStations;\n          \n          if (filters.status !== 'all') {\n            filteredStations = filteredStations.filter(station => {\n              if (filters.status === 'available') return station.availableSlots > 0;\n              if (filters.status === 'busy') return station.availableSlots === 0;\n              if (filters.status === 'maintenance') return station.status === 'Maintenance';\n              return true;\n            });\n          }\n          \n          if (filters.connector !== 'all') {\n            filteredStations = filteredStations.filter(station => station.connector === filters.connector);\n          }\n\n          // Sort by priority: 1=reachable+available, 2=reachable+busy, 3=unreachable\n          // Then by distance (nearest first)\n          filteredStations.sort((a, b) => {\n            if (a.priority !== b.priority) {\n              return a.priority - b.priority;\n            }\n            return a.distance - b.distance;\n          });\n          \n          setStations(filteredStations);\n        }\n      } catch (error) {\n        console.error('Error fetching stations:', error);\n        setStations([]);\n      }\n    };\n\n    if (!loading) {\n      fetchStations();\n    }\n  }, [filters, userRange, userLocation, loading]);\n\n  if (loading) {\n    return (\n      <div className=\"map-loading\">\n        <div className=\"skeleton map-skeleton\" style={{ height: '500px' }}></div>\n      </div>\n    );\n  }\n\n  const recommendedStations = stations.filter(s => s.priority === 1);\n\n  return (\n    <div>\n      <div style={{ position: 'relative' }}>\n        <MapContainer\n          ref={mapRef}\n          center={[userLocation.lat, userLocation.lng]}\n          zoom={12}\n          style={{ height: '500px', width: '100%' }}\n          className=\"leaflet-map\"\n        >\n          <TileLayer\n            attribution='&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors'\n            url=\"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png\"\n          />\n          \n          {/* User Location Marker */}\n          <Marker\n            position={[userLocation.lat, userLocation.lng]}\n            icon={carIcon}\n          >\n            <Popup>\n              <div className=\"station-popup\">\n                <h4>🚗 Your Location</h4>\n                {userRange > 0 && <p>Range: {userRange} km</p>}\n              </div>\n            </Popup>\n          </Marker>\n          \n          {/* Charging Station Markers */}\n          {stations.map(station => (\n            <Marker\n              key={station.id}\n              position={[station.lat, station.lng]}\n              icon={chargingIcon(\n                station.isReachable && station.availableSlots > 0,\n                station.isReachable,\n                station.availableSlots > 0\n              )}\n            >\n              <Popup>\n                <div className=\"station-popup\">\n                  <h4>{station.name}</h4>\n                  <p><strong>Available:</strong> {station.availableSlots}/{station.totalSlots} slots</p>\n                  <p><strong>Distance:</strong> {station.distance} km</p>\n                  <p><strong>Price:</strong> {station.price}</p>\n                  <p><strong>Connector:</strong> {station.connector.toUpperCase()}</p>\n                  {!station.isReachable && (\n                    <p style={{color: 'red'}}><strong>⚠️ Out of Range</strong></p>\n                  )}\n                  {station.availableSlots === 0 && (\n                    <p style={{color: 'orange'}}><strong>🚫 Fully Booked</strong></p>\n                  )}\n                  {station.isReachable && station.availableSlots > 0 && (\n                    <>\n                      <p style={{color: 'green'}}><strong>✅ Recommended</strong></p>\n                      <Button size=\"sm\" onClick={() => handleBookStation(station)}>Book Now</Button>\n                    </>\n                  )}\n                </div>\n              </Popup>\n            </Marker>\n          ))}\n        </MapContainer>\n        \n        {/* Current Location Button */}\n        <Button \n          className=\"current-location-btn\"\n          onClick={goToCurrentLocation}\n          style={{\n            position: 'absolute',\n            top: '10px',\n            right: '10px',\n            zIndex: 1000,\n            borderRadius: '50%',\n            width: '40px',\n            height: '40px'\n          }}\n        >\n          📍\n        </Button>\n      </div>\n\n      {/* Recommended Stations List */}\n      {recommendedStations.length > 0 && (\n        <div className=\"mt-4\">\n          <h5>Recommended Stations</h5>\n          <Row>\n            {recommendedStations.map(station => (\n              <Col md={6} lg={4} key={station.id} className=\"mb-3\">\n                <Card>\n                  <Card.Body>\n                    <Card.Title className=\"d-flex justify-content-between\">\n                      {station.name}\n                      <Badge bg=\"success\">✅</Badge>\n                    </Card.Title>\n                    <Card.Text>\n                      <small className=\"text-muted\">{station.address}</small><br/>\n                      <strong>Distance:</strong> {station.distance} km<br/>\n                      <strong>Available:</strong> {station.availableSlots}/{station.totalSlots} slots<br/>\n                      <strong>Price:</strong> {station.price}\n                    </Card.Text>\n                    <Button \n                      variant=\"primary\" \n                      size=\"sm\" \n                      onClick={() => handleBookStation(station)}\n                    >\n                      Book Now\n                    </Button>\n                  </Card.Body>\n                </Card>\n              </Col>\n            ))}\n          </Row>\n        </div>\n      )}\n\n      {/* Booking Modal */}\n      <Modal show={showBookingModal} onHide={() => setShowBookingModal(false)}>\n        <Modal.Header closeButton>\n          <Modal.Title>Book Charging Slot</Modal.Title>\n        </Modal.Header>\n        <Modal.Body>\n          {selectedStation && (\n            <>\n              <h6>{selectedStation.name}</h6>\n              <p className=\"text-muted\">{selectedStation.address}</p>\n              \n              <Form>\n                <Form.Group className=\"mb-3\">\n                  <Form.Label>Date</Form.Label>\n                  <Form.Control\n                    type=\"date\"\n                    value={bookingData.date}\n                    min={new Date().toISOString().split('T')[0]}\n                    onChange={(e) => setBookingData({...bookingData, date: e.target.value})}\n                  />\n                </Form.Group>\n                \n                <Form.Group className=\"mb-3\">\n                  <Form.Label>Time Slot</Form.Label>\n                  <Form.Select\n                    value={bookingData.timeSlot}\n                    onChange={(e) => setBookingData({...bookingData, timeSlot: e.target.value})}\n                  >\n                    <option value=\"\">Select Time</option>\n                    {generateTimeSlots().map(slot => (\n                      <option key={slot} value={slot}>{slot}</option>\n                    ))}\n                  </Form.Select>\n                </Form.Group>\n                \n                <Form.Group className=\"mb-3\">\n                  <Form.Label>Duration (hours)</Form.Label>\n                  <Form.Select\n                    value={bookingData.duration}\n                    onChange={(e) => setBookingData({...bookingData, duration: parseInt(e.target.value)})}\n                  >\n                    <option value={1}>1 hour</option>\n                    <option value={2}>2 hours</option>\n                    <option value={3}>3 hours</option>\n                  </Form.Select>\n                </Form.Group>\n                \n                <div className=\"text-center\">\n                  <strong>Total Amount: ₹{(parseFloat(selectedStation.price.replace('₹', '').replace('/kWh', '')) * 10).toFixed(2)}</strong>\n                </div>\n              </>\n            )}\n          )}\n        </Modal.Body>\n        <Modal.Footer>\n          <Button variant=\"secondary\" onClick={() => setShowBookingModal(false)}>\n            Cancel\n          </Button>\n          <Button \n            variant=\"primary\" \n            onClick={handleBookingSubmit}\n            disabled={!bookingData.timeSlot}\n          >\n            Proceed to Payment\n          </Button>\n        </Modal.Footer>\n      </Modal>\n    </div>\n  );\n};\n\nexport default InteractiveMap;
+import React, { useState, useEffect, useRef } from 'react';
+import { API_CONFIG } from '../constants/apiConstants';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { Button, Card, Badge, Modal, Form, Row, Col } from 'react-bootstrap';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import './InteractiveMap.css';
+
+// Fix for default markers in react-leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+// Car icon for user location
+const carIcon = new L.Icon({
+    iconUrl: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
+    <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="16" cy="16" r="15" fill="#007bff" stroke="white" stroke-width="2"/>
+      <text x="16" y="20" text-anchor="middle" font-size="16" fill="white">🚗</text>
+    </svg>
+  `),
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -16]
+});
+
+// Charging station icon with different colors for status
+const chargingIcon = (isReachableAndAvailable = true, isReachable = true, isAvailable = true) => {
+    let color = '#dc3545'; // Red for unreachable/unavailable
+
+    if (isReachableAndAvailable) {
+        color = '#28a745'; // Green for reachable and available (recommended)
+    } else if (isReachable && !isAvailable) {
+        color = '#ffc107'; // Yellow for reachable but booked
+    } else if (!isReachable) {
+        color = '#6c757d'; // Gray for out of range
+    }
+
+    return new L.Icon({
+        iconUrl: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
+      <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="14" cy="14" r="13" fill="${color}" stroke="white" stroke-width="2"/>
+        <text x="14" y="18" text-anchor="middle" font-size="16" fill="white">⚡</text>
+      </svg>
+    `),
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+        popupAnchor: [0, -14]
+    });
+};
+
+const InteractiveMap = ({ filters, userRange, vehicleData }) => {
+    const [stations, setStations] = useState([]);
+    const [userLocation, setUserLocation] = useState({ lat: 19.0760, lng: 72.8777 });
+    const [loading, setLoading] = useState(true);
+    const [showBookingModal, setShowBookingModal] = useState(false);
+    const [selectedStation, setSelectedStation] = useState(null);
+    const [bookingData, setBookingData] = useState({
+        date: new Date().toISOString().split('T')[0],
+        timeSlot: '',
+        duration: 1
+    });
+    const mapRef = useRef();
+
+    // Calculate distance between two points
+    const calculateDistance = (lat1, lng1, lat2, lng2) => {
+        const R = 6371; // Earth's radius in kilometers
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return Math.round(R * c);
+    };
+
+    const goToCurrentLocation = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const newLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    setUserLocation(newLocation);
+                    if (mapRef.current) {
+                        mapRef.current.setView([newLocation.lat, newLocation.lng], 15);
+                    }
+                },
+                (error) => {
+                    alert('Unable to get your location');
+                }
+            );
+        }
+    };
+
+    const handleBookStation = (station) => {
+        setSelectedStation(station);
+        setShowBookingModal(true);
+    };
+
+    const generateTimeSlots = () => {
+        const slots = [];
+        const now = new Date();
+        const currentHour = now.getHours();
+        const isToday = bookingData.date === new Date().toISOString().split('T')[0];
+
+        for (let hour = isToday ? Math.max(currentHour + 1, 6) : 6; hour <= 22; hour++) {
+            slots.push(`${hour.toString().padStart(2, '0')}:00`);
+        }
+        return slots;
+    };
+
+    const handleBookingSubmit = () => {
+        const booking = {
+            id: Date.now(),
+            stationId: selectedStation.id,
+            stationName: selectedStation.name,
+            date: bookingData.date,
+            timeSlot: bookingData.timeSlot,
+            duration: bookingData.duration,
+            vehicleData: JSON.parse(localStorage.getItem('savedVehicleData') || '{}'),
+            amount: parseFloat(selectedStation.price.replace('₹', '').replace('/kWh', '')) * 10,
+            status: 'Confirmed',
+            bookedAt: new Date().toISOString()
+        };
+
+        const existingBookings = JSON.parse(localStorage.getItem('userBookings') || '[]');
+        existingBookings.push(booking);
+        localStorage.setItem('userBookings', JSON.stringify(existingBookings));
+
+        setShowBookingModal(false);
+        alert('Booking confirmed! Check My Bookings page for details.');
+    };
+
+    useEffect(() => {
+        // Get user location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setUserLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    });
+                    setLoading(false);
+                },
+                () => {
+                    setLoading(false);
+                }
+            );
+        } else {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        // Fetch stations from API
+        const fetchStations = async () => {
+            try {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/stations`);
+                const data = await response.json();
+
+                if (data.stations) {
+                    // Convert API data to map format
+                    const apiStations = data.stations.map(station => {
+                        const distance = userLocation ? calculateDistance(
+                            userLocation.lat, userLocation.lng,
+                            station.latitude, station.longitude
+                        ) : 0;
+
+                        const isReachable = userRange > 0 ? distance <= userRange : true;
+                        const isAvailable = station.availableSlots > 0;
+
+                        return {
+                            id: station.id,
+                            name: station.name,
+                            lat: station.latitude,
+                            lng: station.longitude,
+                            availability: isAvailable ? 'available' : 'busy',
+                            connector: station.connectorTypes?.[0]?.toLowerCase() || 'ccs',
+                            price: `₹${station.pricePerKwh}/kWh`,
+                            availableSlots: station.availableSlots,
+                            totalSlots: station.totalSlots,
+                            distance: distance,
+                            address: station.address,
+                            powerOutput: station.powerOutput,
+                            operatingHours: station.operatingHours,
+                            amenities: station.amenities || [],
+                            isReachable: isReachable,
+                            status: station.status,
+                            priority: isReachable && isAvailable ? 1 : isReachable ? 2 : 3
+                        };
+                    });
+
+                    // Filter stations based on filters
+                    let filteredStations = apiStations;
+
+                    if (filters.status !== 'all') {
+                        filteredStations = filteredStations.filter(station => {
+                            if (filters.status === 'available') return station.availableSlots > 0;
+                            if (filters.status === 'busy') return station.availableSlots === 0;
+                            if (filters.status === 'maintenance') return station.status === 'Maintenance';
+                            return true;
+                        });
+                    }
+
+                    if (filters.connector !== 'all') {
+                        filteredStations = filteredStations.filter(station => station.connector === filters.connector);
+                    }
+
+                    // Sort by priority: 1=reachable+available, 2=reachable+busy, 3=unreachable
+                    // Then by distance (nearest first)
+                    filteredStations.sort((a, b) => {
+                        if (a.priority !== b.priority) {
+                            return a.priority - b.priority;
+                        }
+                        return a.distance - b.distance;
+                    });
+
+                    setStations(filteredStations);
+                }
+            } catch (error) {
+                console.error('Error fetching stations:', error);
+                setStations([]);
+            }
+        };
+
+        if (!loading) {
+            fetchStations();
+        }
+    }, [filters, userRange, userLocation, loading]);
+
+    if (loading) {
+        return (
+            <div className="map-loading">
+                <div className="skeleton map-skeleton" style={{ height: '500px' }}></div>
+            </div>
+        );
+    }
+
+    const recommendedStations = stations.filter(s => s.priority === 1);
+
+    return (
+        <div>
+            <div style={{ position: 'relative' }}>
+                <MapContainer
+                    ref={mapRef}
+                    center={[userLocation.lat, userLocation.lng]}
+                    zoom={12}
+                    style={{ height: '500px', width: '100%' }}
+                    className="leaflet-map"
+                >
+                    <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+
+                    {/* User Location Marker */}
+                    <Marker
+                        position={[userLocation.lat, userLocation.lng]}
+                        icon={carIcon}
+                    >
+                        <Popup>
+                            <div className="station-popup">
+                                <h4>🚗 Your Location</h4>
+                                {userRange > 0 && <p>Range: {userRange} km</p>}
+                            </div>
+                        </Popup>
+                    </Marker>
+
+                    {/* Charging Station Markers */}
+                    {stations.map(station => (
+                        <Marker
+                            key={station.id}
+                            position={[station.lat, station.lng]}
+                            icon={chargingIcon(
+                                station.isReachable && station.availableSlots > 0,
+                                station.isReachable,
+                                station.availableSlots > 0
+                            )}
+                        >
+                            <Popup>
+                                <div className="station-popup">
+                                    <h4>{station.name}</h4>
+                                    <p><strong>Available:</strong> {station.availableSlots}/{station.totalSlots} slots</p>
+                                    <p><strong>Distance:</strong> {station.distance} km</p>
+                                    <p><strong>Price:</strong> {station.price}</p>
+                                    <p><strong>Connector:</strong> {station.connector.toUpperCase()}</p>
+                                    {!station.isReachable && (
+                                        <p style={{ color: 'red' }}><strong>⚠️ Out of Range</strong></p>
+                                    )}
+                                    {station.availableSlots === 0 && (
+                                        <p style={{ color: 'orange' }}><strong>🚫 Fully Booked</strong></p>
+                                    )}
+                                    {station.isReachable && station.availableSlots > 0 && (
+                                        <>
+                                            <p style={{ color: 'green' }}><strong>✅ Recommended</strong></p>
+                                            <Button size="sm" onClick={() => handleBookStation(station)}>Book Now</Button>
+                                        </>
+                                    )}
+                                </div>
+                            </Popup>
+                        </Marker>
+                    ))}
+                </MapContainer>
+
+                {/* Current Location Button */}
+                <Button
+                    className="current-location-btn"
+                    onClick={goToCurrentLocation}
+                    style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '10px',
+                        zIndex: 1000,
+                        borderRadius: '50%',
+                        width: '40px',
+                        height: '40px'
+                    }}
+                >
+                    📍
+                </Button>
+            </div>
+
+            {/* Recommended Stations List */}
+            {recommendedStations.length > 0 && (
+                <div className="mt-4">
+                    <h5>Recommended Stations</h5>
+                    <Row>
+                        {recommendedStations.map(station => (
+                            <Col md={6} lg={4} key={station.id} className="mb-3">
+                                <Card>
+                                    <Card.Body>
+                                        <Card.Title className="d-flex justify-content-between">
+                                            {station.name}
+                                            <Badge bg="success">✅</Badge>
+                                        </Card.Title>
+                                        <Card.Text>
+                                            <small className="text-muted">{station.address}</small><br />
+                                            <strong>Distance:</strong> {station.distance} km<br />
+                                            <strong>Available:</strong> {station.availableSlots}/{station.totalSlots} slots<br />
+                                            <strong>Price:</strong> {station.price}
+                                        </Card.Text>
+                                        <Button
+                                            variant="primary"
+                                            size="sm"
+                                            onClick={() => handleBookStation(station)}
+                                        >
+                                            Book Now
+                                        </Button>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                        ))}
+                    </Row>
+                </div>
+            )}
+
+            {/* Booking Modal */}
+            <Modal show={showBookingModal} onHide={() => setShowBookingModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Book Charging Slot</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {selectedStation && (
+                        <>
+                            <h6>{selectedStation.name}</h6>
+                            <p className="text-muted">{selectedStation.address}</p>
+
+                            <Form>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Date</Form.Label>
+                                    <Form.Control
+                                        type="date"
+                                        value={bookingData.date}
+                                        min={new Date().toISOString().split('T')[0]}
+                                        onChange={(e) => setBookingData({ ...bookingData, date: e.target.value })}
+                                    />
+                                </Form.Group>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Time Slot</Form.Label>
+                                    <Form.Select
+                                        value={bookingData.timeSlot}
+                                        onChange={(e) => setBookingData({ ...bookingData, timeSlot: e.target.value })}
+                                    >
+                                        <option value="">Select Time</option>
+                                        {generateTimeSlots().map(slot => (
+                                            <option key={slot} value={slot}>{slot}</option>
+                                        ))}
+                                    </Form.Select>
+                                </Form.Group>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Duration (hours)</Form.Label>
+                                    <Form.Select
+                                        value={bookingData.duration}
+                                        onChange={(e) => setBookingData({ ...bookingData, duration: parseInt(e.target.value) })}
+                                    >
+                                        <option value={1}>1 hour</option>
+                                        <option value={2}>2 hours</option>
+                                        <option value={3}>3 hours</option>
+                                    </Form.Select>
+                                </Form.Group>
+
+                                <div className="text-center">
+                                    <strong>Total Amount: ₹{(parseFloat(selectedStation.price.replace('₹', '').replace('/kWh', '')) * 10).toFixed(2)}</strong>
+                                </div>
+                            </Form>
+                        </>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowBookingModal(false)}>
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={handleBookingSubmit}
+                        disabled={!bookingData.timeSlot}
+                    >
+                        Proceed to Payment
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+        </div>
+    );
+};
+
+export default InteractiveMap;
