@@ -98,6 +98,7 @@ public class WebSecurityConfig {
                     .requestMatchers("/api-docs/**").permitAll()
                     .requestMatchers("/swagger-ui.html").permitAll()
                     .requestMatchers("/actuator/**").permitAll()
+                    .requestMatchers("/").permitAll()
                     .requestMatchers("/api/station-master/**").hasRole("StationMaster")
                     .anyRequest().authenticated()
             );
