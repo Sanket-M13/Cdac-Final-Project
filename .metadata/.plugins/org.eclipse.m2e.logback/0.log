@@ -106,3 +106,7 @@
 2026-02-04 15:46:25,985 [Worker-36: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\final p\Fina dot plus front\EVChargerSpringBoot\src\test\resources
 2026-02-04 20:30:54,975 [Stop Help Server] INFO  org.eclipse.jetty.server.Server - Stopped oejs.Server@6ad7b824{STOPPING}[12.0.16,sto=0]
 2026-02-04 20:30:55,154 [Stop Help Server] INFO  o.e.jetty.server.AbstractConnector - Stopped ServerConnector@5aa6095f{HTTP/1.1, (http/1.1)}{127.0.0.1:0}
+2026-02-08 17:01:20,612 [Worker-5: Loading available Gradle versions] INFO  o.e.b.c.i.u.g.PublishedGradleVersions - Gradle version information cache is out-of-date. Trying to update.
+2026-02-08 17:02:07,640 [Worker-20: Launching EVChargerSpringBoot - EVChargerApiApplication] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-02-08 17:02:07,673 [Worker-20: Launching EVChargerSpringBoot - EVChargerApiApplication] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-02-08 17:02:07,678 [Worker-20: Launching EVChargerSpringBoot - EVChargerApiApplication] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\final p\Fina dot plus front\EVChargerSpringBoot\src\test\resources
