@@ -34,7 +34,7 @@ public class WebSecurityConfig {
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
 
-    @Value("http://localhost:5173,http://localhost:5174,http://localhost:3000")
+    @Value("${cors.allowed-origins:http://localhost:5173,http://localhost:5174,http://localhost:3000,https://cdac-final-project-mecb.vercel.app}")
     private String allowedOrigins;
 
     @Value("GET,POST,PUT,DELETE,OPTIONS")
