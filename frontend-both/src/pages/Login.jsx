@@ -101,7 +101,7 @@ const Login = () => {
     try {
       const payload = JSON.parse(atob(credentialResponse.credential.split('.')[1]));
       
-      const response = await fetch('http://localhost:5000/api/auth/google', {
+      const response = await fetch('https://evcharger-springboot.onrender.com/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -217,7 +217,7 @@ const Login = () => {
         role: 'User'
       };
       
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch('https://evcharger-springboot.onrender.com/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestData)

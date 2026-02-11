@@ -66,7 +66,7 @@ const Profile = () => {
 
   const loadUserData = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/me', {
+      const response = await fetch('https://evcharger-springboot.onrender.com/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -110,7 +110,7 @@ const Profile = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/profile', {
+      const response = await fetch('https://evcharger-springboot.onrender.com/api/users/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ const Profile = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/change-password', {
+      const response = await fetch('https://evcharger-springboot.onrender.com/api/users/change-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

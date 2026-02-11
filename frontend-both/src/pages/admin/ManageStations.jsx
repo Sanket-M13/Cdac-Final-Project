@@ -30,7 +30,7 @@ const ManageStations = () => {
   const fetchStations = async () => {
     try {
       // Use admin endpoint to get all stations including pending ones
-      const response = await fetch('http://localhost:5000/api/stations', {
+      const response = await fetch('https://evcharger-springboot.onrender.com/api/stations', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -107,7 +107,7 @@ const ManageStations = () => {
 
   const handleApprove = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/stations/${id}/approve`, {
+      const response = await fetch(`https://evcharger-springboot.onrender.com/api/admin/stations/${id}/approve`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -130,7 +130,7 @@ const ManageStations = () => {
   const handleReject = async (id) => {
     if (window.confirm('Are you sure you want to reject this station?')) {
       try {
-        const response = await fetch(`http://localhost:5000/api/admin/stations/${id}/reject`, {
+        const response = await fetch(`https://evcharger-springboot.onrender.com/api/admin/stations/${id}/reject`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,

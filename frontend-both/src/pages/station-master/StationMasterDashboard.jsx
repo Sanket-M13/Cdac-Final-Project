@@ -17,7 +17,7 @@ const StationMasterDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       // Fetch stations owned by this station master
-      const stationsResponse = await fetch('http://localhost:5000/api/station-master/stations', {
+      const stationsResponse = await fetch('https://evcharger-springboot.onrender.com/api/station-master/stations', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -30,7 +30,7 @@ const StationMasterDashboard = () => {
         // Fetch recent bookings for all stations
         const allBookings = [];
         for (const station of stationsData) {
-          const bookingsResponse = await fetch(`http://localhost:5000/api/station-master/stations/${station.id}/bookings`, {
+          const bookingsResponse = await fetch(`https://evcharger-springboot.onrender.com/api/station-master/stations/${station.id}/bookings`, {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`
             }

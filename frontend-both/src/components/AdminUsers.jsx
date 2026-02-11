@@ -10,7 +10,7 @@ const AdminUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/users', {
+      const response = await fetch('https://evcharger-springboot.onrender.com/api/users', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       })
       const data = await response.json()

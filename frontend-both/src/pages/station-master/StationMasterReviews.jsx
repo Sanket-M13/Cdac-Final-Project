@@ -13,7 +13,7 @@ const StationMasterReviews = () => {
 
   const fetchReviews = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/station-master/reviews', {
+      const response = await fetch('https://evcharger-springboot.onrender.com/api/station-master/reviews', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }

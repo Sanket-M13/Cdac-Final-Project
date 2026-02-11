@@ -17,13 +17,13 @@ const AdminStats = () => {
   const fetchStats = async () => {
     try {
       const [usersRes, stationsRes, bookingsRes] = await Promise.all([
-        fetch('http://localhost:5000/api/users', {
+        fetch('https://evcharger-springboot.onrender.com/api/users', {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         }),
-        fetch('http://localhost:5000/api/stations', {
+        fetch('https://evcharger-springboot.onrender.com/api/stations', {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         }),
-        fetch('http://localhost:5000/api/bookings', {
+        fetch('https://evcharger-springboot.onrender.com/api/bookings', {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         })
       ])

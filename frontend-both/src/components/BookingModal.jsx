@@ -35,7 +35,7 @@ const BookingModal = ({ show, onHide, station, selectedVehicle }) => {
       console.log('Fetching slots for station:', stationId, 'date:', date)
       
       // Use bookings API endpoint for slots
-      const response = await fetch(`http://localhost:5000/api/bookings/slots/${stationId}?date=${date}`)
+      const response = await fetch(`https://evcharger-springboot.onrender.com/api/bookings/slots/${stationId}?date=${date}`)
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)

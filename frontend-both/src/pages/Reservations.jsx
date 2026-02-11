@@ -23,7 +23,7 @@ const Reservations = () => {
 
   const fetchReservations = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/bookings/user', {
+      const response = await fetch('https://evcharger-springboot.onrender.com/api/bookings/user', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -47,7 +47,7 @@ const Reservations = () => {
       const userId = JSON.parse(localStorage.getItem('user'))?.id;
       const stationId = selectedReservation.station?.id || selectedReservation.stationId;
       
-      const response = await fetch('http://localhost:5000/api/reviews', {
+      const response = await fetch('https://evcharger-springboot.onrender.com/api/reviews', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -112,7 +112,7 @@ const Reservations = () => {
       
       const bookingId = selectedReservation.Id || selectedReservation.id;
       
-      const response = await fetch(`http://localhost:5000/api/bookings/${bookingId}`, {
+      const response = await fetch(`https://evcharger-springboot.onrender.com/api/bookings/${bookingId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

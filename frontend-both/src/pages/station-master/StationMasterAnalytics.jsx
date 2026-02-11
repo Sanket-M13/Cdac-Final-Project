@@ -27,7 +27,7 @@ const StationMasterAnalytics = () => {
       const token = localStorage.getItem('token');
       
       // Fetch stations
-      const stationsResponse = await fetch('http://localhost:5000/api/station-master/stations', {
+      const stationsResponse = await fetch('https://evcharger-springboot.onrender.com/api/station-master/stations', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -45,7 +45,7 @@ const StationMasterAnalytics = () => {
         const currentYear = new Date().getFullYear();
         
         for (const station of stations) {
-          const bookingsResponse = await fetch(`http://localhost:5000/api/station-master/stations/${station.id}/bookings`, {
+          const bookingsResponse = await fetch(`https://evcharger-springboot.onrender.com/api/station-master/stations/${station.id}/bookings`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           

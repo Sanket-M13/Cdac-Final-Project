@@ -21,7 +21,7 @@ const MyStations = () => {
 
   const fetchStations = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/station-master/stations', {
+      const response = await fetch('https://evcharger-springboot.onrender.com/api/station-master/stations', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -42,7 +42,7 @@ const MyStations = () => {
     setLoadingDetails(true);
     try {
       // Fetch bookings for this specific station
-      const bookingsResponse = await fetch(`http://localhost:5000/api/station-master/stations/${stationId}/bookings`, {
+      const bookingsResponse = await fetch(`https://evcharger-springboot.onrender.com/api/station-master/stations/${stationId}/bookings`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -85,7 +85,7 @@ const MyStations = () => {
 
   const handleSaveChanges = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/station-master/stations/${selectedStation.id}`, {
+      const response = await fetch(`https://evcharger-springboot.onrender.com/api/station-master/stations/${selectedStation.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -21,7 +21,7 @@ const CostEstimator = () => {
 
   const fetchStations = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/stations/nearby?latitude=40.7128&longitude=-74.0060&radiusKm=50');
+      const response = await axios.get('https://evcharger-springboot.onrender.com/api/stations/nearby?latitude=40.7128&longitude=-74.0060&radiusKm=50');
       setStations(response.data);
     } catch (error) {
       toast.error('Failed to load stations');
@@ -55,7 +55,7 @@ const CostEstimator = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/reservations/estimate-cost', {
+      const response = await axios.post('https://evcharger-springboot.onrender.com/api/reservations/estimate-cost', {
         chargingStationId: parseInt(formData.chargingStationId),
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString()

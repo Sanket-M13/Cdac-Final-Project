@@ -14,7 +14,7 @@ export const paymentService = {
       // Convert amount to paise (multiply by 100) and ensure it's an integer
       const amountInPaise = Math.round(parseFloat(amount) * 100)
       
-      const response = await fetch('http://localhost:5000/api/payment/create-order', {
+      const response = await fetch('https://evcharger-springboot.onrender.com/api/payment/create-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -44,7 +44,7 @@ export const paymentService = {
       order_id: orderData.id,
       handler: function (response) {
 
-        fetch('http://localhost:5000/api/payment/verify', {
+        fetch('https://evcharger-springboot.onrender.com/api/payment/verify', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

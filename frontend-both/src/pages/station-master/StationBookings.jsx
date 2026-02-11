@@ -17,7 +17,7 @@ const StationBookings = () => {
 
   const fetchStations = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/station-master/stations', {
+      const response = await fetch('https://evcharger-springboot.onrender.com/api/station-master/stations', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -36,7 +36,7 @@ const StationBookings = () => {
 
   const fetchStationBookings = async (stationId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/station-master/stations/${stationId}/bookings`, {
+      const response = await fetch(`https://evcharger-springboot.onrender.com/api/station-master/stations/${stationId}/bookings`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -67,7 +67,7 @@ const StationBookings = () => {
       
       // For real bookings, call API
       const endpoint = action === 'complete' ? 'complete' : action;
-      const url = `http://localhost:5000/api/station-master/bookings/${bookingId}/${endpoint}`;
+      const url = `https://evcharger-springboot.onrender.com/api/station-master/bookings/${bookingId}/${endpoint}`;
       console.log('API URL:', url);
       
       const response = await fetch(url, {

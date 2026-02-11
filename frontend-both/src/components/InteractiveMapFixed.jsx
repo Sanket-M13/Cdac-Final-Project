@@ -181,7 +181,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
   const checkIfSlotBooked = async (stationId, date, timeSlot) => {
     try {
       // Check with backend API for accurate slot availability
-      const response = await fetch(`http://localhost:5000/api/bookings/slots/${stationId}?date=${date}`, {
+      const response = await fetch(`https://evcharger-springboot.onrender.com/api/bookings/slots/${stationId}?date=${date}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -287,7 +287,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
       
       console.log('Creating booking with payment ID:', paymentId);
       
-      const response = await fetch('http://localhost:5000/api/bookings', {
+      const response = await fetch('https://evcharger-springboot.onrender.com/api/bookings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

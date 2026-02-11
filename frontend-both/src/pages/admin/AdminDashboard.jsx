@@ -21,13 +21,13 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       const [usersRes, stationsRes, bookingsRes] = await Promise.all([
-        fetch('http://localhost:5000/api/admin/users', {
+        fetch('https://evcharger-springboot.onrender.com/api/admin/users', {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         }),
-        fetch('http://localhost:5000/api/admin/stations', {
+        fetch('https://evcharger-springboot.onrender.com/api/admin/stations', {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         }),
-        fetch('http://localhost:5000/api/admin/bookings', {
+        fetch('https://evcharger-springboot.onrender.com/api/admin/bookings', {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         })
       ]);

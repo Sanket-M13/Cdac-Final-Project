@@ -90,7 +90,7 @@ const InteractiveMap = ({ filters, userRange, vehicleData }) => {
   
     const fetchStations = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/stations');
+        const response = await fetch('https://evcharger-springboot.onrender.com/api/stations');
         const data = await response.json();
         
         if (data.stations) {

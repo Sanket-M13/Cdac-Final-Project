@@ -31,7 +31,7 @@ const Auth = () => {
 
   const sendOTP = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/send-otp', {
+      const response = await fetch('https://evcharger-springboot.onrender.com/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email })
@@ -58,7 +58,7 @@ const Auth = () => {
     
     try {
       const endpoint = isLogin ? '/api/auth/login-otp' : '/api/auth/register';
-      const response = await fetch(`http://localhost:5000${endpoint}`, {
+      const response = await fetch(`https://evcharger-springboot.onrender.com${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -82,7 +82,7 @@ const Auth = () => {
     e.preventDefault();
     
     try {
-      const response = await fetch('http://localhost:5000/api/auth/update-car-details', {
+      const response = await fetch('https://evcharger-springboot.onrender.com/api/auth/update-car-details', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ const Auth = () => {
     toast.info('Google authentication - Demo mode');
     // For now, create a demo Google user
     try {
-      const response = await fetch('http://localhost:5000/api/auth/google', {
+      const response = await fetch('https://evcharger-springboot.onrender.com/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
