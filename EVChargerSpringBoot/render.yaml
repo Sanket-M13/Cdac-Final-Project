@@ -1,6 +1,7 @@
 services:
   - type: web
     name: evcharger-springboot
+    rootDir: EVChargerSpringBoot
     env: docker
     plan: free
     region: singapore # Optional, pick closest to you
