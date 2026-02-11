@@ -1,6 +1,6 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://evcharger-springboot.onrender.com',
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://evcharger-springboot.onrender.com/api',
   TIMEOUT: 60000,
   HEADERS: {
     'Content-Type': 'application/json',
